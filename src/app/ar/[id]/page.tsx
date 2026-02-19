@@ -1,31 +1,39 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import axios from "axios";
 
-export default function ARPage({ params }: any) {
+export default function ARPage({ params }: { params: { id: string } }) {
   const [modelUrl, setModelUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchProduct = async () => {
-      const res = await axios.get(`/api/public-product/${params.id}`);
-      setModelUrl(res.data.arModelUrl);
-    };
+    // load model viewer script on client
+    import("@google/model-viewer");
 
-    fetchProduct();
+    // TODO: replace with your real product fetch
+    setModelUrl(
+      "https://modelviewer.dev/shared-assets/models/Astronaut.glb"
+    );
   }, [params.id]);
 
-  if (!modelUrl) return <div>Loading...</div>;
+  if (!modelUrl) {
+    return <div style={{ padding: 20 }}>Loading...</div>;
+  }
 
   return (
     <div style={{ padding: 20 }}>
-      <model-viewer
-        src={modelUrl}
-        ar
-        auto-rotate
-        camera-controls
-        style={{ width: "100%", height: "500px" }}
-      ></model-viewer>
+      <div
+        dangerouslySetInnerHTML={{
+          __html: `
+            <model-viewer
+              src="${modelUrl}"
+              ar
+              auto-rotate
+              camera-controls
+              style="width:100%; height:500px;"
+            ></model-viewer>
+          `,
+        }}
+      />
     </div>
   );
 }

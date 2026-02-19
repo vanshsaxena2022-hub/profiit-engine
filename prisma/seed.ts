@@ -1,33 +1,51 @@
 import { PrismaClient } from "@prisma/client";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
 async function main() {
-  const email = "admin@peddle.com";
-  const newPassword = "admin123";
+  const email = "demo@store.com";
+  const password = "demo123";
 
-  const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-  const admin = await prisma.user.findFirst({
-    where: {
-      role: "SUPER_ADMIN",
-    },
+  // check if user exists
+  const existingUser = await prisma.user.findUnique({
+    where: { email },
   });
 
-  if (!admin) {
-    console.log("❌ No SUPER_ADMIN found");
+  if (existingUser) {
+    console.log("Demo user already exists");
     return;
   }
 
-  await prisma.user.update({
-    where: { id: admin.id },
-    data: { password: hashedPassword },
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  // create demo shop
+  const shop = await prisma.shop.create({
+    data: {
+      name: "Demo Decor",
+      slug: "demo-decor",
+      whatsappNumber: "919999999999",
+      tagline: "Premium Furniture Store",
+    },
   });
 
-  console.log("✅ SUPER_ADMIN password reset");
+  // create demo user
+  await prisma.user.create({
+    data: {
+      email,
+      password: hashedPassword,
+      shopId: shop.id,
+    },
+  });
+
+  console.log("✅ Demo data seeded");
 }
 
 main()
-  .catch(console.error)
-  .finally(() => prisma.$disconnect());
+  .catch((e) => {
+    console.error("SEED ERROR:", e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

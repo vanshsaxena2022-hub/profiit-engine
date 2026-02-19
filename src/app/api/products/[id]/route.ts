@@ -1,29 +1,31 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 export async function DELETE(
-  req: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
 ) {
-  const session = await getServerSession(authOptions);
-  if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  try {
+    const { id } = await context.params;
+
+    if (!id) {
+      return NextResponse.json(
+        { error: "Product id required" },
+        { status: 400 }
+      );
+    }
+
+    await prisma.product.delete({
+      where: { id },
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("DELETE PRODUCT ERROR:", error);
+
+    return NextResponse.json(
+      { error: "Failed to delete product" },
+      { status: 500 }
+    );
   }
-
-  // verify ownership
-  const product = await prisma.product.findUnique({
-    where: { id: params.id },
-  });
-
-  if (!product || product.shopId !== session.user.shopId) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
-
-  await prisma.product.delete({
-    where: { id: params.id },
-  });
-
-  return NextResponse.json({ success: true });
 }
