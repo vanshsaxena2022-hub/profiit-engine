@@ -4,46 +4,41 @@ import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 
 async function main() {
-  const email = "demo@store.com";
-  const password = "demo123";
+  console.log("🌱 Seeding started...");
 
-  // check if user exists
-  const existingUser = await prisma.user.findUnique({
-    where: { email },
-  });
-
-  if (existingUser) {
-    console.log("Demo user already exists");
-    return;
-  }
-
-  const hashedPassword = await bcrypt.hash(password, 10);
-
-  // create demo shop
-  const shop = await prisma.shop.create({
-    data: {
+  // ✅ create demo shop
+  const shop = await prisma.shop.upsert({
+    where: { slug: "demo-decor" },
+    update: {},
+    create: {
       name: "Demo Decor",
       slug: "demo-decor",
       whatsappNumber: "919999999999",
-      tagline: "Premium Furniture Store",
+      tagline: "Premium Home Decor",
+      logoUrl: "",
     },
   });
 
-  // create demo user
-  await prisma.user.create({
-    data: {
-      email,
+  // ✅ hash password
+  const hashedPassword = await bcrypt.hash("demo123", 10);
+
+  // ✅ create demo user
+  await prisma.user.upsert({
+    where: { email: "demo@store.com" },
+    update: {},
+    create: {
+      email: "demo@store.com",
       password: hashedPassword,
       shopId: shop.id,
     },
   });
 
-  console.log("✅ Demo data seeded");
+  console.log("✅ Seed completed");
 }
 
 main()
   .catch((e) => {
-    console.error("SEED ERROR:", e);
+    console.error(e);
     process.exit(1);
   })
   .finally(async () => {
