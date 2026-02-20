@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { prisma } from "@/lib/prisma";
 import StoreHeader from "@/components/store/StoreHeader";
 import CategoryFilter from "@/components/store/CategoryFilter";

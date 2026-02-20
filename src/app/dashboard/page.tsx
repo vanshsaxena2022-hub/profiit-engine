@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
 import KPIGrid from "@/components/KPIGrid";
+export const dynamic = "force-dynamic";
 
 export default async function OverviewPage() {
   const session = await getServerSession(authOptions);
