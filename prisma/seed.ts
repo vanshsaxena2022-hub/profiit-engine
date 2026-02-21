@@ -1,12 +1,10 @@
+import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
-
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("🌱 Seeding started...");
-
-  // ✅ create demo shop
+  // create shop
   const shop = await prisma.shop.upsert({
     where: { slug: "demo-decor" },
     update: {},
@@ -14,21 +12,20 @@ async function main() {
       name: "Demo Decor",
       slug: "demo-decor",
       whatsappNumber: "919999999999",
-      tagline: "Premium Home Decor",
-      logoUrl: "",
+      tagline: "Premium Furniture Store",
     },
   });
 
-  // ✅ hash password
+  // 🔐 HASH PASSWORD PROPERLY
   const hashedPassword = await bcrypt.hash("demo123", 10);
 
-  // ✅ create demo user
+  // create user
   await prisma.user.upsert({
     where: { email: "demo@store.com" },
     update: {},
     create: {
       email: "demo@store.com",
-      password: hashedPassword,
+      password: hashedPassword, // ✅ IMPORTANT
       shopId: shop.id,
     },
   });
@@ -37,10 +34,5 @@ async function main() {
 }
 
 main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+  .catch(console.error)
+  .finally(() => prisma.$disconnect());
