@@ -1,3 +1,5 @@
+// src/app/shop/[slug]/page.tsx
+
 export const dynamic = "force-dynamic";
 
 import { prisma } from "@/lib/prisma";
@@ -14,12 +16,21 @@ export default async function ShopPage({
       where: { slug: params.slug },
       include: {
         products: {
-          include: { images: true },
+          include: {
+            images: {
+              select: {
+                id: true,
+                imageUrl: true,
+                productId: true,
+              },
+            },
+          },
           orderBy: { createdAt: "desc" },
         },
       },
     });
 
+    // ✅ store not found
     if (!shop) {
       return (
         <div className="p-10 text-center text-gray-500">
@@ -28,8 +39,13 @@ export default async function ShopPage({
       );
     }
 
+    // ✅ SAFE SERIALIZATION (important for Render)
+    const safeProducts = JSON.parse(
+      JSON.stringify(shop.products)
+    );
+
     const categories = Array.from(
-      new Set(shop.products.map((p) => p.category))
+      new Set(safeProducts.map((p: any) => p.category))
     );
 
     return (
@@ -41,7 +57,7 @@ export default async function ShopPage({
         />
 
         <StoreClient
-          products={shop.products}
+          products={safeProducts}
           categories={categories}
           slug={shop.slug}
         />
