@@ -4,13 +4,16 @@ import { prisma } from "@/lib/prisma";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+type Context = {
+  params: Promise<{ id: string }>;
+};
+
+export async function GET(request: Request, context: Context) {
   try {
+    const { id } = await context.params;
+
     const product = await prisma.product.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         images: true,
         shop: {
