@@ -2,18 +2,24 @@
 export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 
-export default function ProductPage({ params }: any) {
+export default function ProductPage() {
+  const params = useParams();
+  const id = params?.id as string;
+
   const [product, setProduct] = useState<any>(null);
   const [index, setIndex] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!id) return;
+
     async function load() {
       try {
-        const res = await fetch(
-          `/api/public-product/${params.id}`
-        );
+        console.log("🧪 FETCHING PRODUCT ID:", id);
+
+        const res = await fetch(`/api/public-product/${id}`);
         const data = await res.json();
 
         console.log("🧪 PRODUCT DATA:", data);
@@ -27,7 +33,7 @@ export default function ProductPage({ params }: any) {
     }
 
     load();
-  }, [params.id]);
+  }, [id]);
 
   if (loading) return <div className="p-10">Loading...</div>;
 
@@ -40,7 +46,6 @@ export default function ProductPage({ params }: any) {
   }
 
   const images = product.images || [];
-
   const currentImage =
     images[index]?.imageUrl || "/placeholder.png";
 
@@ -70,19 +75,17 @@ export default function ProductPage({ params }: any) {
 
       {/* INFO */}
       <h1 className="text-2xl font-bold">
-        {product.name || "No name"}
+        {product.name}
       </h1>
 
       <p className="text-gray-600 mb-6">
-        {product.description || "No description"}
+        {product.description}
       </p>
 
       {/* BUTTONS */}
       <div className="flex gap-3">
         <a
-          href={`https://wa.me/${
-            product.shop?.whatsappNumber || ""
-          }`}
+          href={`https://wa.me/${product.shop?.whatsappNumber}`}
           className="flex-1 bg-green-500 text-white py-3 rounded-xl text-center font-semibold"
         >
           WhatsApp
