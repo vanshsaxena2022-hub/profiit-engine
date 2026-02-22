@@ -20,11 +20,14 @@ export default function AddProductPage() {
     setLoading(true);
 
     try {
+      // 🔥 DEBUG — do not remove until fully stable
+      console.log("🚀 SENDING IMAGES:", images);
+
       await axios.post("/api/products", {
         name,
         category,
         description,
-        images, // ✅ array directly
+        images, // ✅ must be array of URLs
       });
 
       alert("Product added successfully");
@@ -35,15 +38,18 @@ export default function AddProductPage() {
       setDescription("");
       setImages([]);
     } catch (err: any) {
-  console.error("ADD PRODUCT ERROR:", err?.response?.data || err);
-  alert(
-    err?.response?.data?.error ||
-      "Failed to add product"
-  );
-}
+      console.error(
+        "ADD PRODUCT ERROR:",
+        err?.response?.data || err
+      );
 
-
-    setLoading(false);
+      alert(
+        err?.response?.data?.error ||
+          "Failed to add product"
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -80,11 +86,13 @@ export default function AddProductPage() {
 
         {/* IMAGE UPLOADER */}
         <ImageUploader
-          onUpload={(url) =>
-            setImages((prev) => [...prev, url])
-          }
+          onUpload={(url) => {
+            console.log("📸 IMAGE ADDED:", url);
+            setImages((prev) => [...prev, url]);
+          }}
         />
 
+        {/* IMAGE COUNT */}
         <div className="text-xs text-gray-500">
           Uploaded images: {images.length}
         </div>
@@ -93,7 +101,7 @@ export default function AddProductPage() {
         <button
           onClick={submit}
           disabled={loading}
-          className="w-full bg-black hover:bg-gray-800 text-white py-3 rounded-xl font-semibold transition"
+          className="w-full bg-black hover:bg-gray-800 text-white py-3 rounded-xl font-semibold transition disabled:opacity-50"
         >
           {loading ? "Adding..." : "Add Product"}
         </button>

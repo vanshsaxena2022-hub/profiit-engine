@@ -14,19 +14,27 @@ export default function ImageUploader({
     try {
       setLoading(true);
 
-      // ✅ create form data properly
       const form = new FormData();
       form.append("file", file);
 
-      // ✅ send to API
-      const res = await axios.post("/api/upload", form, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      const res = await axios.post("/api/upload", form);
 
-      // ✅ pass URL back to parent
-      onUpload(res.data.url);
+      // 🔥 VERY IMPORTANT — normalize response
+      const url =
+        res?.data?.url ||
+        res?.data?.data?.url ||
+        res?.data?.data?.display_url ||
+        res?.data?.imageUrl;
+
+      if (!url) {
+        console.error("❌ Upload response:", res.data);
+        alert("Upload succeeded but URL missing");
+        return;
+      }
+
+      console.log("✅ Uploaded URL:", url);
+
+      onUpload(url);
     } catch (err) {
       console.error("UPLOAD FRONTEND ERROR:", err);
       alert("Image upload failed");
@@ -41,7 +49,7 @@ export default function ImageUploader({
         type="file"
         accept="image/*"
         onChange={(e) => {
-          if (e.target.files && e.target.files[0]) {
+          if (e.target.files?.[0]) {
             upload(e.target.files[0]);
           }
         }}
