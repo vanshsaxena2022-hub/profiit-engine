@@ -1,18 +1,14 @@
+// src/app/api/upload/route.ts
+
 import { NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
+
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   try {
-    console.log("UPLOAD ROUTE HIT");
-
     const formData = await req.formData();
-    console.log("FORMDATA RECEIVED");
-
     const file = formData.get("file") as File | null;
-    console.log("FILE:", file?.name);
 
     if (!file) {
       return NextResponse.json(
@@ -21,38 +17,47 @@ export async function POST(req: Request) {
       );
     }
 
+    // convert file → base64
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
+    const base64 = buffer.toString("base64");
 
-    const uploadDir = path.join(process.cwd(), "public", "uploads");
-    console.log("UPLOAD DIR:", uploadDir);
+    const apiKey = process.env.IMGBB_API_KEY;
 
-    // ✅ SAFE DIR ENSURE (Windows-proof)
-    try {
-      const stat = await fs.promises.stat(uploadDir).catch(() => null);
-
-      if (stat && !stat.isDirectory()) {
-        // uploads exists but is a file → remove it
-        await fs.promises.unlink(uploadDir);
-      }
-
-      await fs.promises.mkdir(uploadDir, { recursive: true });
-    } catch (e) {
-      console.error("DIR PREP ERROR:", e);
+    if (!apiKey) {
+      console.error("❌ IMGBB KEY MISSING");
+      return NextResponse.json(
+        { error: "Image service not configured" },
+        { status: 500 }
+      );
     }
 
-    const fileName = `${Date.now()}-${file.name}`;
-    const filePath = path.join(uploadDir, fileName);
+    // upload to imgbb
+    const response = await fetch(
+      `https://api.imgbb.com/1/upload?key=${apiKey}`,
+      {
+        method: "POST",
+        body: new URLSearchParams({
+          image: base64,
+        }),
+      }
+    );
 
-    await fs.promises.writeFile(filePath, buffer);
+    const data = await response.json();
 
-    console.log("FILE WRITTEN");
+    if (!data?.data?.url) {
+      console.error("❌ IMGBB ERROR:", data);
+      return NextResponse.json(
+        { error: "Image upload failed" },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({
-      url: `/uploads/${fileName}`,
+      url: data.data.url, // ⭐ PUBLIC CDN URL
     });
   } catch (err) {
-    console.error("UPLOAD CRASH FULL:", err);
+    console.error("❌ UPLOAD ERROR:", err);
     return NextResponse.json(
       { error: "Upload failed" },
       { status: 500 }
