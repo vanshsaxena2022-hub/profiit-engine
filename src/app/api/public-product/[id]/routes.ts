@@ -1,19 +1,42 @@
-import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-export async function GET(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
-  const product = await prisma.product.findUnique({
-    where: { id: params.id },
-  });
+type Context = {
+  params: Promise<{ id: string }>;
+};
 
-  if (!product) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
+export async function GET(request: Request, context: Context) {
+  try {
+    const { id } = await context.params;
+
+    const product = await prisma.product.findUnique({
+      where: { id },
+      include: {
+        images: true,
+        shop: {
+          select: {
+            whatsappNumber: true,
+          },
+        },
+      },
+    });
+
+    if (!product) {
+      return NextResponse.json(
+        { error: "Product not found" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(product);
+  } catch (err) {
+    console.error("PUBLIC PRODUCT ERROR:", err);
+    return NextResponse.json(
+      { error: "Failed to load product" },
+      { status: 500 }
+    );
   }
-
-  return NextResponse.json(product);
 }
