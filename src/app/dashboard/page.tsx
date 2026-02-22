@@ -1,36 +1,43 @@
+// src/app/dashboard/page.tsx
+
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
 import KPIGrid from "@/components/KPIGrid";
+import { redirect } from "next/navigation";
+
 export const dynamic = "force-dynamic";
 
-export default async function OverviewPage() {
+export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
-  if (!session) return null;
 
-  const products = await prisma.product.findMany({
-    where: { shopId: session.user.shopId },
-  });
+  if (!session?.user?.shopId) {
+    redirect("/login");
+  }
 
-  const categories = new Set(products.map((p) => p.category));
+  const shopId = session.user.shopId;
+
+  // ✅ KPI calculations
+  const [totalProducts, arProducts] = await Promise.all([
+    prisma.product.count({
+      where: { shopId },
+    }),
+    prisma.product.count({
+      where: {
+        shopId,
+        arModelUrl: { not: null },
+      },
+    }),
+  ]);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
+      <h1 className="text-2xl font-bold">Overview</h1>
+
       <KPIGrid
-        totalProducts={products.length}
-        totalCategories={categories.size}
+        totalProducts={totalProducts}
+        arProducts={arProducts}
       />
-
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-        <h2 className="text-lg font-semibold text-gray-900 mb-2">
-          Performance Overview
-        </h2>
-
-        <p className="text-sm text-gray-500">
-          Advanced analytics and growth insights will appear
-          here as your catalogue activity increases.
-        </p>
-      </div>
     </div>
   );
 }

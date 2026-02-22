@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import ARViewer from "@/components/ARViewer";
 
 export default function ProductPage() {
   const params = useParams();
@@ -11,19 +12,15 @@ export default function ProductPage() {
   const [product, setProduct] = useState<any>(null);
   const [index, setIndex] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [showAR, setShowAR] = useState(false);
 
   useEffect(() => {
     if (!id) return;
 
     async function load() {
       try {
-        console.log("🧪 FETCHING PRODUCT ID:", id);
-
         const res = await fetch(`/api/public-product/${id}`);
         const data = await res.json();
-
-        console.log("🧪 PRODUCT DATA:", data);
-
         setProduct(data);
       } catch (e) {
         console.error("PRODUCT LOAD ERROR:", e);
@@ -55,7 +52,7 @@ export default function ProductPage() {
       <div className="rounded-2xl overflow-hidden border">
         <img
           src={currentImage}
-          alt={product.name || "product"}
+          alt={product.name}
           className="w-full h-80 object-cover"
         />
       </div>
@@ -91,10 +88,30 @@ export default function ProductPage() {
           WhatsApp
         </a>
 
-        <button className="flex-1 bg-black text-white py-3 rounded-xl font-semibold">
+        <button
+          onClick={() => setShowAR(true)}
+          disabled={!product.arModelUrl}
+          className="flex-1 bg-black text-white py-3 rounded-xl font-semibold disabled:opacity-40"
+        >
           View in AR
         </button>
       </div>
+
+      {/* ✅ AR MODAL */}
+      {showAR && product.arModelUrl && (
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl p-4 max-w-2xl w-full relative">
+            <button
+              onClick={() => setShowAR(false)}
+              className="absolute top-3 right-3 bg-black text-white px-3 py-1 rounded-lg"
+            >
+              Close
+            </button>
+
+            <ARViewer src={product.arModelUrl} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
