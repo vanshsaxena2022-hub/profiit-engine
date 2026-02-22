@@ -6,17 +6,38 @@ import { useEffect, useState } from "react";
 export default function ProductPage({ params }: any) {
   const [product, setProduct] = useState<any>(null);
   const [index, setIndex] = useState(0);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`/api/public-product/${params.id}`)
-      .then((r) => r.json())
-      .then(setProduct)
-      .catch((e) => {
+    async function load() {
+      try {
+        const res = await fetch(
+          `/api/public-product/${params.id}`
+        );
+        const data = await res.json();
+
+        console.log("🧪 PRODUCT DATA:", data);
+
+        setProduct(data);
+      } catch (e) {
         console.error("PRODUCT LOAD ERROR:", e);
-      });
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    load();
   }, [params.id]);
 
-  if (!product) return <div className="p-10">Loading...</div>;
+  if (loading) return <div className="p-10">Loading...</div>;
+
+  if (!product || product.error) {
+    return (
+      <div className="p-10 text-center text-red-500">
+        Product not found
+      </div>
+    );
+  }
 
   const images = product.images || [];
 
@@ -29,8 +50,8 @@ export default function ProductPage({ params }: any) {
       <div className="rounded-2xl overflow-hidden border">
         <img
           src={currentImage}
+          alt={product.name || "product"}
           className="w-full h-80 object-cover"
-          loading="lazy"
         />
       </div>
 
@@ -48,13 +69,20 @@ export default function ProductPage({ params }: any) {
       </div>
 
       {/* INFO */}
-      <h1 className="text-2xl font-bold">{product.name}</h1>
-      <p className="text-gray-600 mb-6">{product.description}</p>
+      <h1 className="text-2xl font-bold">
+        {product.name || "No name"}
+      </h1>
+
+      <p className="text-gray-600 mb-6">
+        {product.description || "No description"}
+      </p>
 
       {/* BUTTONS */}
       <div className="flex gap-3">
         <a
-          href={`https://wa.me/${product.shop?.whatsappNumber || ""}`}
+          href={`https://wa.me/${
+            product.shop?.whatsappNumber || ""
+          }`}
           className="flex-1 bg-green-500 text-white py-3 rounded-xl text-center font-semibold"
         >
           WhatsApp
