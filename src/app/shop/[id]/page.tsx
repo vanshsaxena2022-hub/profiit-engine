@@ -1,4 +1,4 @@
-// src/app/shop/[slug]/page.tsx
+// src/app/shop/[id]/page.tsx
 
 export const dynamic = "force-dynamic";
 
@@ -9,11 +9,11 @@ import StoreClient from "@/components/store/StoreClient";
 export default async function ShopPage({
   params,
 }: {
-  params: { slug: string };
+  params: { id: string };
 }) {
   try {
     const shop = await prisma.shop.findUnique({
-      where: { slug: params.slug },
+      where: { id: params.id },
       include: {
         products: {
           include: {
@@ -30,7 +30,6 @@ export default async function ShopPage({
       },
     });
 
-    // ✅ store not found
     if (!shop) {
       return (
         <div className="p-10 text-center text-gray-500">
@@ -39,7 +38,6 @@ export default async function ShopPage({
       );
     }
 
-    // ✅ SAFE SERIALIZATION (important for Render)
     const safeProducts = JSON.parse(
       JSON.stringify(shop.products)
     );
@@ -59,7 +57,7 @@ export default async function ShopPage({
         <StoreClient
           products={safeProducts}
           categories={categories}
-          slug={shop.slug}
+          slug={shop.slug} // keep for internal links if needed
         />
       </div>
     );
