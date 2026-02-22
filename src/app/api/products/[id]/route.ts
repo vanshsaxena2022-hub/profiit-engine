@@ -2,12 +2,13 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function DELETE(
-  req: Request,
-  context: { params: { id: string } }
+  request: Request,
+  { params }: { params: { id: string } }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -19,7 +20,7 @@ export async function DELETE(
       );
     }
 
-    const productId = context.params.id;
+    const productId = params.id;
 
     // ✅ verify ownership
     const product = await prisma.product.findFirst({
