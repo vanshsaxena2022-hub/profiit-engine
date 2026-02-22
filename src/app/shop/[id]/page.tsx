@@ -6,14 +6,22 @@ import { prisma } from "@/lib/prisma";
 import StoreHeader from "@/components/store/StoreHeader";
 import StoreClient from "@/components/store/StoreClient";
 
-export default async function ShopPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+export default async function ShopPage(props: any) {
   try {
+    // ✅ robust param handling (important for Next 15/16)
+    const params = await props.params;
+    const shopId = params?.id;
+
+    if (!shopId) {
+      return (
+        <div className="p-10 text-center text-red-500">
+          Invalid store URL
+        </div>
+      );
+    }
+
     const shop = await prisma.shop.findUnique({
-      where: { id: params.id },
+      where: { id: shopId },
       include: {
         products: {
           include: {
@@ -38,6 +46,7 @@ export default async function ShopPage({
       );
     }
 
+    // ✅ safe serialization for server → client
     const safeProducts = JSON.parse(
       JSON.stringify(shop.products)
     );
@@ -57,7 +66,7 @@ export default async function ShopPage({
         <StoreClient
           products={safeProducts}
           categories={categories}
-          slug={shop.slug} // keep for internal links if needed
+          slug={shop.slug}
         />
       </div>
     );
