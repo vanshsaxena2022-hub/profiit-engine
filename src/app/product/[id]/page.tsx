@@ -1,5 +1,6 @@
 "use client";
 export const dynamic = "force-dynamic";
+
 import { useEffect, useState } from "react";
 
 export default function ProductPage({ params }: any) {
@@ -9,20 +10,27 @@ export default function ProductPage({ params }: any) {
   useEffect(() => {
     fetch(`/api/public-product/${params.id}`)
       .then((r) => r.json())
-      .then(setProduct);
+      .then(setProduct)
+      .catch((e) => {
+        console.error("PRODUCT LOAD ERROR:", e);
+      });
   }, [params.id]);
 
   if (!product) return <div className="p-10">Loading...</div>;
 
   const images = product.images || [];
 
+  const currentImage =
+    images[index]?.imageUrl || "/placeholder.png";
+
   return (
     <div className="min-h-screen bg-white p-6 max-w-xl mx-auto">
       {/* IMAGE */}
       <div className="rounded-2xl overflow-hidden border">
         <img
-          src={images[index]?.url}
+          src={currentImage}
           className="w-full h-80 object-cover"
+          loading="lazy"
         />
       </div>
 
@@ -46,7 +54,7 @@ export default function ProductPage({ params }: any) {
       {/* BUTTONS */}
       <div className="flex gap-3">
         <a
-          href={`https://wa.me/${product.shop.whatsappNumber}`}
+          href={`https://wa.me/${product.shop?.whatsappNumber || ""}`}
           className="flex-1 bg-green-500 text-white py-3 rounded-xl text-center font-semibold"
         >
           WhatsApp
