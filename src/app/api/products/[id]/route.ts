@@ -6,11 +6,15 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-export async function DELETE(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+// ✅ Next.js 16–safe typing
+type Context = {
+  params: Promise<{ id: string }>;
+};
+
+export async function DELETE(request: Request, context: Context) {
   try {
+    const { id } = await context.params;
+
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.shopId) {
@@ -20,12 +24,10 @@ export async function DELETE(
       );
     }
 
-    const productId = params.id;
-
-    // ✅ verify ownership
+    // 🔒 verify ownership
     const product = await prisma.product.findFirst({
       where: {
-        id: productId,
+        id,
         shopId: session.user.shopId,
       },
     });
@@ -39,12 +41,12 @@ export async function DELETE(
 
     // ✅ delete images first
     await prisma.productImage.deleteMany({
-      where: { productId },
+      where: { productId: id },
     });
 
     // ✅ delete product
     await prisma.product.delete({
-      where: { id: productId },
+      where: { id },
     });
 
     return NextResponse.json({ success: true });
