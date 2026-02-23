@@ -7,8 +7,9 @@ export default function ARViewer({ src }: { src: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!containerRef.current) return;
+  if (!containerRef.current || !src) return;
 
+  try {
     containerRef.current.innerHTML = `
       <model-viewer
         src="${src}"
@@ -19,7 +20,8 @@ export default function ARViewer({ src }: { src: string }) {
         style="width:100%;height:500px;"
       ></model-viewer>
     `;
-  }, [src]);
-
-  return <div ref={containerRef} />;
+  } catch (e) {
+    console.error("AR VIEWER ERROR:", e);
+  }
+}, [src]);
 }

@@ -1,52 +1,72 @@
 "use client";
+
 export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
 import ARViewer from "@/components/ARViewer";
 
-export default function ProductPage() {
-  const params = useParams();
-  const id = params?.id as string;
-
+export default function ProductPage({
+  params,
+}: {
+  params: { id: string };
+}) {
   const [product, setProduct] = useState<any>(null);
   const [index, setIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [showAR, setShowAR] = useState(false);
 
+  // ✅ FETCH PRODUCT SAFELY
   useEffect(() => {
-  if (!id) return;
+    if (!params?.id) return;
 
-  async function load() {
-    try {
-      const res = await fetch(`/api/public-product/${id}`);
-      const data = await res.json();
-      setProduct(data);
+    const load = async () => {
+      try {
+        const res = await fetch(`/api/public-product/${params.id}`);
+        const data = await res.json();
 
-      // ✅ TRACK LINK OPEN (non-blocking)
-      if (data?.shopId) {
-        fetch("/api/track", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            shopId: data.shopId,
-            productId: data.id,
-            type: "link_open",
-          }),
-        }).catch(() => {});
+        setProduct(data);
+
+        // ✅ SAFE analytics fire
+        if (data?.shopId && data?.id) {
+          fetch("/api/track", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              shopId: data.shopId,
+              productId: data.id,
+              type: "link_open",
+            }),
+          }).catch(() => {});
+        }
+      } catch (err) {
+        console.error("PRODUCT LOAD ERROR:", err);
+      } finally {
+        setLoading(false);
       }
-    } catch (e) {
-      console.error("PRODUCT LOAD ERROR:", e);
-    } finally {
-      setLoading(false);
-    }
+    };
+
+    load();
+  }, [params?.id]);
+
+  // ✅ LOADING STATE
+  if (loading) {
+    return <div className="p-10 text-center">Loading...</div>;
   }
 
-  load();
-}, [id]);
+  // ✅ PRODUCT NOT FOUND GUARD
+  if (!product || product.error) {
+    return (
+      <div className="p-10 text-center text-red-500">
+        Product not found
+      </div>
+    );
+  }
 
+  // ✅ SAFE IMAGES
+  const images = Array.isArray(product.images)
+    ? product.images
+    : [];
 
-  const images = product.images || [];
   const currentImage =
     images[index]?.imageUrl || "/placeholder.png";
 
@@ -56,26 +76,28 @@ export default function ProductPage() {
       <div className="rounded-2xl overflow-hidden border">
         <img
           src={currentImage}
-          alt={product.name}
           className="w-full h-80 object-cover"
+          alt={product.name}
         />
       </div>
 
       {/* DOTS */}
-      <div className="flex justify-center gap-2 my-3">
-        {images.map((_: any, i: number) => (
-          <div
-            key={i}
-            onClick={() => setIndex(i)}
-            className={`w-2.5 h-2.5 rounded-full cursor-pointer ${
-              i === index ? "bg-black" : "bg-gray-300"
-            }`}
-          />
-        ))}
-      </div>
+      {images.length > 1 && (
+        <div className="flex justify-center gap-2 my-3">
+          {images.map((_: any, i: number) => (
+            <div
+              key={i}
+              onClick={() => setIndex(i)}
+              className={`w-2.5 h-2.5 rounded-full cursor-pointer ${
+                i === index ? "bg-black" : "bg-gray-300"
+              }`}
+            />
+          ))}
+        </div>
+      )}
 
       {/* INFO */}
-      <h1 className="text-2xl font-bold">
+      <h1 className="text-2xl font-bold mt-4">
         {product.name}
       </h1>
 
@@ -85,32 +107,42 @@ export default function ProductPage() {
 
       {/* BUTTONS */}
       <div className="flex gap-3">
+        {/* ✅ SAFE WHATSAPP */}
         <a
-          href={`https://wa.me/${product.shop?.whatsappNumber}`}
+          href={`https://wa.me/${
+            product.shop?.whatsappNumber || ""
+          }`}
           onClick={() => {
-          fetch("/api/track", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-          shopId: product.shopId,
-          productId: product.id,
-          type: "whatsapp_click",
-                       }),
-                    }).catch(() => {});
-                    }}
-             className="flex-1 bg-green-500 text-white py-3 rounded-xl text-center font-semibold"
-                        >
-                   WhatsApp
-                     </a>
+            try {
+              if (!product?.shopId) return;
 
-
-        <button
-          onClick={() => setShowAR(true)}
-          disabled={!product.arModelUrl}
-          className="flex-1 bg-black text-white py-3 rounded-xl font-semibold disabled:opacity-40"
+              fetch("/api/track", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  shopId: product.shopId,
+                  productId: product.id,
+                  type: "whatsapp_click",
+                }),
+              }).catch(() => {});
+            } catch (e) {
+              console.error("WA TRACK ERROR:", e);
+            }
+          }}
+          className="flex-1 bg-green-500 text-white py-3 rounded-xl text-center font-semibold"
         >
-          View in AR
-        </button>
+          WhatsApp
+        </a>
+
+        {/* ✅ AR BUTTON */}
+        {product.arModelUrl && (
+          <button
+            onClick={() => setShowAR(true)}
+            className="flex-1 bg-black text-white py-3 rounded-xl font-semibold"
+          >
+            View in AR
+          </button>
+        )}
       </div>
 
       {/* ✅ AR MODAL */}
