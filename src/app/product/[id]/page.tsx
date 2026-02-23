@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 
 type Product = {
   id: string;
@@ -11,17 +12,22 @@ type Product = {
   arModelUrl?: string | null;
 };
 
-export default function ProductPage({ params }: { params: { id: string } }) {
+export default function ProductPage() {
+  const params = useParams();
+  const productId = params?.id as string;
+
   const [product, setProduct] = useState<Product | null>(null);
   const [index, setIndex] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!productId) return;
+
     const loadProduct = async () => {
       try {
-        console.log("LOADING PRODUCT:", params.id);
+        console.log("LOADING PRODUCT:", productId);
 
-        const res = await fetch(`/api/public-product/${params.id}`, {
+        const res = await fetch(`/api/public-product/${productId}`, {
           cache: "no-store",
         });
 
@@ -40,14 +46,12 @@ export default function ProductPage({ params }: { params: { id: string } }) {
     };
 
     loadProduct();
-  }, [params.id]);
+  }, [productId]);
 
-  // ✅ loading state
   if (loading) {
     return <div className="p-10 text-center">Loading...</div>;
   }
 
-  // ✅ not found state
   if (!product) {
     return (
       <div className="p-10 text-center text-red-500">
