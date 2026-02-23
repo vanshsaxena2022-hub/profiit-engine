@@ -6,10 +6,11 @@ export const runtime = "nodejs";
 
 export async function DELETE(
   request: Request,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const productId = context.params.id;
+    // ✅ NEXT 15+ FIX — await params
+    const { id: productId } = await context.params;
 
     if (!productId) {
       return NextResponse.json(
