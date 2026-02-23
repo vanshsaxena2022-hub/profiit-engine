@@ -3,9 +3,13 @@
 export default function KPIGrid({
   totalProducts,
   arProducts,
+  linkOpens,
+  whatsappClicks,
 }: {
   totalProducts: number;
   arProducts: number;
+  linkOpens: number;
+  whatsappClicks: number;
 }) {
   const kpis = [
     {
@@ -18,10 +22,20 @@ export default function KPIGrid({
       value: arProducts,
       icon: "🧊",
     },
+    {
+      label: "Links Opened",
+      value: linkOpens,
+      icon: "🔗",
+    },
+    {
+      label: "WhatsApp Clicks",
+      value: whatsappClicks,
+      icon: "💬",
+    },
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
       {kpis.map((kpi) => (
         <div
           key={kpi.label}

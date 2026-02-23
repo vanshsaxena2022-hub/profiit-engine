@@ -17,15 +17,39 @@ export default async function DashboardPage() {
 
   const shopId = session.user.shopId;
 
-  // ✅ KPI calculations
-  const [totalProducts, arProducts] = await Promise.all([
+  // ✅ ALL KPI QUERIES IN PARALLEL (fast)
+  const [
+    totalProducts,
+    arProducts,
+    linkOpens,
+    whatsappClicks,
+  ] = await Promise.all([
+    // total products
     prisma.product.count({
       where: { shopId },
     }),
+
+    // products with AR
     prisma.product.count({
       where: {
         shopId,
         arModelUrl: { not: null },
+      },
+    }),
+
+    // link opens
+    prisma.analytics.count({
+      where: {
+        shopId,
+        type: "link_open",
+      },
+    }),
+
+    // whatsapp clicks
+    prisma.analytics.count({
+      where: {
+        shopId,
+        type: "whatsapp_click",
       },
     }),
   ]);
@@ -37,6 +61,8 @@ export default async function DashboardPage() {
       <KPIGrid
         totalProducts={totalProducts}
         arProducts={arProducts}
+        linkOpens={linkOpens}
+        whatsappClicks={whatsappClicks}
       />
     </div>
   );

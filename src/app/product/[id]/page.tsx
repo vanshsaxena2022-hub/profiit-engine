@@ -15,32 +15,36 @@ export default function ProductPage() {
   const [showAR, setShowAR] = useState(false);
 
   useEffect(() => {
-    if (!id) return;
+  if (!id) return;
 
-    async function load() {
-      try {
-        const res = await fetch(`/api/public-product/${id}`);
-        const data = await res.json();
-        setProduct(data);
-      } catch (e) {
-        console.error("PRODUCT LOAD ERROR:", e);
-      } finally {
-        setLoading(false);
+  async function load() {
+    try {
+      const res = await fetch(`/api/public-product/${id}`);
+      const data = await res.json();
+      setProduct(data);
+
+      // ✅ TRACK LINK OPEN (non-blocking)
+      if (data?.shopId) {
+        fetch("/api/track", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            shopId: data.shopId,
+            productId: data.id,
+            type: "link_open",
+          }),
+        }).catch(() => {});
       }
+    } catch (e) {
+      console.error("PRODUCT LOAD ERROR:", e);
+    } finally {
+      setLoading(false);
     }
-
-    load();
-  }, [id]);
-
-  if (loading) return <div className="p-10">Loading...</div>;
-
-  if (!product || product.error) {
-    return (
-      <div className="p-10 text-center text-red-500">
-        Product not found
-      </div>
-    );
   }
+
+  load();
+}, [id]);
+
 
   const images = product.images || [];
   const currentImage =
@@ -83,10 +87,22 @@ export default function ProductPage() {
       <div className="flex gap-3">
         <a
           href={`https://wa.me/${product.shop?.whatsappNumber}`}
-          className="flex-1 bg-green-500 text-white py-3 rounded-xl text-center font-semibold"
-        >
-          WhatsApp
-        </a>
+          onClick={() => {
+          fetch("/api/track", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+          shopId: product.shopId,
+          productId: product.id,
+          type: "whatsapp_click",
+                       }),
+                    }).catch(() => {});
+                    }}
+             className="flex-1 bg-green-500 text-white py-3 rounded-xl text-center font-semibold"
+                        >
+                   WhatsApp
+                     </a>
+
 
         <button
           onClick={() => setShowAR(true)}
