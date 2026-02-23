@@ -1,14 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../../auth/[...nextauth]/route";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-// ✅ DELETE PRODUCT
 export async function DELETE(
-  req: Request,
+  request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
@@ -23,7 +22,7 @@ export async function DELETE(
 
     const productId = params.id;
 
-    // ✅ ensure product belongs to shop
+    // verify ownership
     const product = await prisma.product.findFirst({
       where: {
         id: productId,
@@ -49,8 +48,8 @@ export async function DELETE(
     });
 
     return NextResponse.json({ success: true });
-  } catch (err) {
-    console.error("DELETE PRODUCT ERROR:", err);
+  } catch (error) {
+    console.error("DELETE PRODUCT ERROR:", error);
 
     return NextResponse.json(
       { error: "Failed to delete product" },
