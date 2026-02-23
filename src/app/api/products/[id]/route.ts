@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
@@ -6,9 +6,15 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
+type Context = {
+  params: {
+    id: string;
+  };
+};
+
 export async function DELETE(
-  request: Request,
-  { params }: { params: { id: string } }
+  req: NextRequest,
+  context: Context
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -20,9 +26,8 @@ export async function DELETE(
       );
     }
 
-    const productId = params.id;
+    const productId = context.params.id;
 
-    // verify ownership
     const product = await prisma.product.findFirst({
       where: {
         id: productId,
@@ -37,12 +42,10 @@ export async function DELETE(
       );
     }
 
-    // delete images first
     await prisma.productImage.deleteMany({
       where: { productId },
     });
 
-    // delete product
     await prisma.product.delete({
       where: { id: productId },
     });
