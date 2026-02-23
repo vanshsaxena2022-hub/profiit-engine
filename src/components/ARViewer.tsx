@@ -1,15 +1,28 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import "@google/model-viewer";
 
-export default function ARViewer({ src }: { src: string }) {
+type Props = {
+  src: string;
+};
+
+export default function ARViewer({ src }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-  if (!containerRef.current || !src) return;
+    if (!containerRef.current || !src) return;
 
-  try {
+    // load model-viewer script once
+    if (!document.getElementById("model-viewer-script")) {
+      const script = document.createElement("script");
+      script.id = "model-viewer-script";
+      script.type = "module";
+      script.src =
+        "https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js";
+      document.head.appendChild(script);
+    }
+
+    // inject model-viewer safely
     containerRef.current.innerHTML = `
       <model-viewer
         src="${src}"
@@ -20,8 +33,8 @@ export default function ARViewer({ src }: { src: string }) {
         style="width:100%;height:500px;"
       ></model-viewer>
     `;
-  } catch (e) {
-    console.error("AR VIEWER ERROR:", e);
-  }
-}, [src]);
+  }, [src]);
+
+  // ✅ CRITICAL: must return JSX
+  return <div ref={containerRef} />;
 }
