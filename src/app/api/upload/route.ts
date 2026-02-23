@@ -1,6 +1,5 @@
-// src/app/api/upload/route.ts
-
 import { NextResponse } from "next/server";
+import axios from "axios";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -17,47 +16,27 @@ export async function POST(req: Request) {
       );
     }
 
-    // convert file → base64
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+    const buffer = Buffer.from(await file.arrayBuffer());
     const base64 = buffer.toString("base64");
 
-    const apiKey = process.env.IMGBB_API_KEY;
-
-    if (!apiKey) {
-      console.error("❌ IMGBB KEY MISSING");
-      return NextResponse.json(
-        { error: "Image service not configured" },
-        { status: 500 }
-      );
-    }
-
-    // upload to imgbb
-    const response = await fetch(
-      `https://api.imgbb.com/1/upload?key=${apiKey}`,
+    // ✅ upload to imgbb
+    const res = await axios.post(
+      `https://api.imgbb.com/1/upload?key=${process.env.IMGBB_API_KEY}`,
       {
-        method: "POST",
-        body: new URLSearchParams({
-          image: base64,
-        }),
+        image: base64,
       }
     );
 
-    const data = await response.json();
+    const url = res.data?.data?.url;
 
-    if (!data?.data?.url) {
-      console.error("❌ IMGBB ERROR:", data);
-      return NextResponse.json(
-        { error: "Image upload failed" },
-        { status: 500 }
-      );
+    if (!url) {
+      throw new Error("ImgBB upload failed");
     }
 
-    return NextResponse.json({
-      url: data.data.url, // ⭐ PUBLIC CDN URL
-    });
+    return NextResponse.json({ url });
   } catch (err) {
-    console.error("❌ UPLOAD ERROR:", err);
+    console.error("UPLOAD ERROR:", err);
+
     return NextResponse.json(
       { error: "Upload failed" },
       { status: 500 }
