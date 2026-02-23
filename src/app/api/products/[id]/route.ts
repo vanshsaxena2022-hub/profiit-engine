@@ -1,16 +1,15 @@
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function DELETE(
-  _req: NextRequest,
-  { params }: { params: { id: string } }
+  request: Request,
+  context: { params: { id: string } }
 ) {
   try {
-    const productId = params.id;
+    const productId = context.params.id;
 
     if (!productId) {
       return NextResponse.json(
@@ -19,10 +18,12 @@ export async function DELETE(
       );
     }
 
+    // delete images first
     await prisma.productImage.deleteMany({
       where: { productId },
     });
 
+    // delete product
     await prisma.product.delete({
       where: { id: productId },
     });
