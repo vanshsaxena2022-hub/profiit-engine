@@ -7,6 +7,7 @@ const IMGBB_KEY = process.env.IMGBB_API_KEY!;
 
 export async function POST(req: Request) {
   try {
+    console.log("IMGBB KEY EXISTS:", !!process.env.IMGBB_API_KEY);
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
 
