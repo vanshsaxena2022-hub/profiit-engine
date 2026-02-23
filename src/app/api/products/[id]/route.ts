@@ -1,25 +1,16 @@
-import { NextResponse, NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function DELETE(
-  req: NextRequest,
-  context: { params: { id: string } }
+  _req: NextRequest,
+  { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession();
-
-    if (!session?.user?.shopId) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-
-    const productId = context.params.id;
+    const productId = params.id;
 
     if (!productId) {
       return NextResponse.json(
@@ -28,12 +19,10 @@ export async function DELETE(
       );
     }
 
-    // delete images first (safe)
     await prisma.productImage.deleteMany({
       where: { productId },
     });
 
-    // delete product
     await prisma.product.delete({
       where: { id: productId },
     });
