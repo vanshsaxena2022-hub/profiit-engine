@@ -17,36 +17,67 @@ export default function ProductPage({
 
   // ✅ FETCH PRODUCT SAFELY
   useEffect(() => {
-    if (!params?.id) return;
+  if (!params?.id) return;
 
-    const load = async () => {
-      try {
-        const res = await fetch(`/api/public-product/${params.id}`);
-        const data = await res.json();
+  let cancelled = false;
 
+  const load = async () => {
+    try {
+      const controller = new AbortController();
+
+      // ⏱️ timeout protection (VERY IMPORTANT on Render)
+      const timeout = setTimeout(() => {
+        controller.abort();
+      }, 15000);
+
+      const res = await fetch(
+        `/api/public-product/${params.id}`,
+        { signal: controller.signal }
+      );
+
+      clearTimeout(timeout);
+
+      if (!res.ok) {
+        throw new Error("Failed to fetch product");
+      }
+
+      const data = await res.json();
+
+      if (!cancelled) {
         setProduct(data);
+      }
 
-        // ✅ SAFE analytics fire
-        if (data?.shopId && data?.id) {
-          fetch("/api/track", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              shopId: data.shopId,
-              productId: data.id,
-              type: "link_open",
-            }),
-          }).catch(() => {});
-        }
-      } catch (err) {
-        console.error("PRODUCT LOAD ERROR:", err);
-      } finally {
+      // ✅ safe analytics
+      if (data?.shopId && data?.id) {
+        fetch("/api/track", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            shopId: data.shopId,
+            productId: data.id,
+            type: "link_open",
+          }),
+        }).catch(() => {});
+      }
+    } catch (err) {
+      console.error("PRODUCT LOAD ERROR:", err);
+
+      if (!cancelled) {
+        setProduct({ error: true });
+      }
+    } finally {
+      if (!cancelled) {
         setLoading(false);
       }
-    };
+    }
+  };
 
-    load();
-  }, [params?.id]);
+  load();
+
+  return () => {
+    cancelled = true;
+  };
+}, [params?.id]);
 
   // ✅ LOADING STATE
   if (loading) {
