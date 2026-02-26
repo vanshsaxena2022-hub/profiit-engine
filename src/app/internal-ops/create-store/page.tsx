@@ -5,9 +5,7 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 
 export default function CreateStorePage() {
-
   const router = useRouter();
-
   const [loading, setLoading] = useState(false);
 
   const [form, setForm] = useState({
@@ -20,10 +18,12 @@ export default function CreateStorePage() {
     logoUrl: "",
   });
 
+  // 🔐 Protect page
   useEffect(() => {
-    const auth = localStorage.getItem("admin-auth");
+    const auth = localStorage.getItem("internal-auth");
+
     if (!auth) {
-      router.push("/admin/login");
+      router.push("/internal-ops/login");
     }
   }, []);
 
@@ -35,10 +35,16 @@ export default function CreateStorePage() {
   };
 
   const submit = async () => {
+    if (!form.name || !form.slug || !form.email || !form.password) {
+      alert("Required fields missing");
+      return;
+    }
+
     setLoading(true);
 
     try {
       await axios.post("/api/onboard", form);
+
       alert("Store Created Successfully ✅");
 
       setForm({
@@ -52,7 +58,8 @@ export default function CreateStorePage() {
       });
 
     } catch (err: any) {
-      alert(err?.response?.data?.error || "Failed");
+      console.error(err?.response?.data || err);
+      alert("Store creation failed");
     }
 
     setLoading(false);
@@ -66,38 +73,59 @@ export default function CreateStorePage() {
 
       <div className="space-y-3">
 
-        <input name="name" placeholder="Store Name"
-          value={form.name} onChange={handleChange}
+        <input
+          name="name"
+          placeholder="Store Name"
+          value={form.name}
+          onChange={handleChange}
           className="w-full border px-3 py-2 rounded"
         />
 
-        <input name="slug" placeholder="Slug"
-          value={form.slug} onChange={handleChange}
+        <input
+          name="slug"
+          placeholder="Slug (royal-furniture)"
+          value={form.slug}
+          onChange={handleChange}
           className="w-full border px-3 py-2 rounded"
         />
 
-        <input name="email" placeholder="Login Email"
-          value={form.email} onChange={handleChange}
+        <input
+          name="email"
+          placeholder="Login Email"
+          value={form.email}
+          onChange={handleChange}
           className="w-full border px-3 py-2 rounded"
         />
 
-        <input name="password" placeholder="Password"
-          value={form.password} onChange={handleChange}
+        <input
+          name="password"
+          placeholder="Password"
+          value={form.password}
+          onChange={handleChange}
           className="w-full border px-3 py-2 rounded"
         />
 
-        <input name="whatsappNumber" placeholder="WhatsApp"
-          value={form.whatsappNumber} onChange={handleChange}
+        <input
+          name="whatsappNumber"
+          placeholder="WhatsApp Number"
+          value={form.whatsappNumber}
+          onChange={handleChange}
           className="w-full border px-3 py-2 rounded"
         />
 
-        <input name="tagline" placeholder="Tagline"
-          value={form.tagline} onChange={handleChange}
+        <input
+          name="tagline"
+          placeholder="Tagline"
+          value={form.tagline}
+          onChange={handleChange}
           className="w-full border px-3 py-2 rounded"
         />
 
-        <input name="logoUrl" placeholder="Logo URL"
-          value={form.logoUrl} onChange={handleChange}
+        <input
+          name="logoUrl"
+          placeholder="Logo URL"
+          value={form.logoUrl}
+          onChange={handleChange}
           className="w-full border px-3 py-2 rounded"
         />
 
