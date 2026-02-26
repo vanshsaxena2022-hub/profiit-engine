@@ -1,8 +1,11 @@
+"use client";
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 const prisma = new PrismaClient();
 
@@ -63,6 +66,16 @@ export async function POST(req: NextRequest) {
         tagline: tagline || null,
       },
     });
+
+          const router = useRouter();
+
+          useEffect(() => {
+          const auth = localStorage.getItem("admin-auth");
+
+           if (!auth) {
+           router.push("/admin/login");
+               }
+              }, []);
 
     // 👤 create owner user (NO ROLE — important)
     await prisma.user.create({
