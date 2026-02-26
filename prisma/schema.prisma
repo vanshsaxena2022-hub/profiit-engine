@@ -8,56 +8,51 @@ datasource db {
 }
 
 model User {
-  id       String  @id @default(cuid())
-  email    String  @unique
-  password String
-  shopId   String?
-
-  shop      Shop?    @relation(fields: [shopId], references: [id])
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  shopId    String?
   createdAt DateTime @default(now())
+  shop      Shop?    @relation(fields: [shopId], references: [id])
 }
 
 model Product {
-  id          String   @id @default(uuid())
+  id          String         @id @default(uuid())
   name        String
   description String
   category    String
   arModelUrl  String?
   shopId      String
-  createdAt   DateTime @default(now())
-
-  shop   Shop           @relation(fields: [shopId], references: [id])
-  images ProductImage[]
+  createdAt   DateTime       @default(now())
+  shop        Shop           @relation(fields: [shopId], references: [id])
+  images      ProductImage[]
 }
 
 model ProductImage {
-  id        String @id @default(uuid())
+  id        String  @id @default(uuid())
   imageUrl  String
   productId String
-
-  product Product @relation(fields: [productId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
 }
 
 model Shop {
-  id             String   @id @default(cuid())
+  id             String      @id @default(cuid())
   name           String
-  slug           String   @unique
+  slug           String      @unique
   whatsappNumber String
   logoUrl        String?
   tagline        String?
-  createdAt      DateTime @default(now())
-
-  users     User[]
-  products  Product[]
-  analytics Analytics[]
+  createdAt      DateTime    @default(now())
+  analytics      Analytics[]
+  products       Product[]
+  users          User[]
 }
 
 model Analytics {
   id        String   @id @default(cuid())
   shopId    String
   productId String?
-  type      String // "link_open" | "whatsapp_click"
+  type      String
   createdAt DateTime @default(now())
-
-  shop Shop @relation(fields: [shopId], references: [id])
+  shop      Shop     @relation(fields: [shopId], references: [id])
 }
