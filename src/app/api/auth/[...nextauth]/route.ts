@@ -49,27 +49,27 @@ export const authOptions: AuthOptions = {
         return {
           id: user.id,
           email: user.email,
-          shopId: user.shopId,
+          shopId: user.shopId ?? null,
         } as any;
       },
     }),
   ],
 
   session: {
-    strategy: "jwt" as const, // ⭐ FIXED TYPE ERROR
+    strategy: "jwt",
   },
 
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        (token as any).shopId = (user as any).shopId;
+        token.shopId = (user as any).shopId;
       }
       return token;
     },
 
     async session({ session, token }) {
       if (session.user) {
-        (session.user as any).shopId = (token as any).shopId;
+        (session.user as any).shopId = token.shopId as string;
       }
       return session;
     },
