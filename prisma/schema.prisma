@@ -36,18 +36,18 @@ model ProductImage {
 }
 
 model Shop {
-  id        String   @id @default(cuid())
-  name      String
-  slug      String   @unique
+  id             String   @id @default(cuid())
+  name           String
+  slug           String   @unique
   whatsappNumber String
-  logoUrl   String?
-  tagline   String?
+  tagline        String?
+  logoUrl        String?
+  arEnabled      Boolean  @default(false)   // ✅ ADD THIS
+  createdAt      DateTime @default(now())
 
-  arEnabled Boolean @default(false)  // ⭐ NEW
-
-  users     User[]
-  products  Product[]
-  analytics Analytics[]
+  users      User[]
+  products   Product[]
+  analytics  Analytics[]
 }
 
 model Analytics {
