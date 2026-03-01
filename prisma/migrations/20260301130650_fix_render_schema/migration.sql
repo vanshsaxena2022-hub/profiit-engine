@@ -1,0 +1,10 @@
+
+-- AlterTable
+ALTER TABLE "Product"
+DROP COLUMN IF EXISTS "arModelUrl";
+
+ALTER TABLE "Product"
+ADD COLUMN IF NOT EXISTS "arModelGlb" TEXT;
+
+ALTER TABLE "Product"
+ADD COLUMN IF NOT EXISTS "arModelUsdz" TEXT;

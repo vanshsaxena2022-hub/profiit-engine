@@ -21,18 +21,14 @@ model Product {
   name        String
   description String
   category    String
-
-  imageUrl    String?        // main store image
-
-  arModelGlb  String?        // Android AR
-  arModelUsdz String?        // iOS AR
-
   shopId      String
   createdAt   DateTime       @default(now())
-
+  arModelGlb  String?
+  arModelUsdz String?
   shop        Shop           @relation(fields: [shopId], references: [id])
   images      ProductImage[]
 }
+
 model ProductImage {
   id        String  @id @default(uuid())
   imageUrl  String
@@ -41,18 +37,17 @@ model ProductImage {
 }
 
 model Shop {
-  id             String   @id @default(cuid())
+  id             String      @id @default(cuid())
   name           String
-  slug           String   @unique
+  slug           String      @unique
   whatsappNumber String
   tagline        String?
   logoUrl        String?
-  arEnabled      Boolean  @default(false)   // ✅ ADD THIS
-  createdAt      DateTime @default(now())
-
-  users      User[]
-  products   Product[]
-  analytics  Analytics[]
+  arEnabled      Boolean     @default(false)
+  createdAt      DateTime    @default(now())
+  analytics      Analytics[]
+  products       Product[]
+  users          User[]
 }
 
 model Analytics {
