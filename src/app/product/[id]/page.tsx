@@ -1,4 +1,6 @@
 export const dynamic = "force-dynamic"
+export const runtime = "nodejs"
+
 import { prisma } from "@/lib/prisma"
 import ProductClient from "./ProductClient"
 import { notFound } from "next/navigation"
