@@ -1,54 +1,74 @@
 "use client"
 
-import Image from "next/image"
-import ARLauncher from "@/components/ARLauncher"
+import { useState } from "react"
+import dynamic from "next/dynamic"
 
-type Product = {
-  id: string
-  name: string
-  description: string
-  imageUrl?: string | null
-  whatsappNumber: string
-  arModelGlb?: string | null
-  arModelUsdz?: string | null
-  arEnabled: boolean
+const ARViewer = dynamic(() => import("@/components/ARViewer"), {
+  ssr: false,
+})
+
+type ProductProps = {
+  product: {
+    id: string
+    name: string
+    description: string
+    imageUrl?: string | null
+    whatsappNumber?: string | null
+    arModelGlb?: string | null
+    arModelUsdz?: string | null
+    arEnabled?: boolean
+  }
 }
 
-export default function ProductClient({ product }: { product: Product }) {
+export default function ProductClient({ product }: ProductProps) {
 
-  const whatsappLink = `https://wa.me/${product.whatsappNumber}?text=Hi, I'm interested in ${product.name}`
+  const [showAR, setShowAR] = useState(false)
+
+  const openWhatsApp = () => {
+    if (!product.whatsappNumber) return
+    const message = encodeURIComponent(`Hi, I'm interested in ${product.name}`)
+    window.open(`https://wa.me/${product.whatsappNumber}?text=${message}`, "_blank")
+  }
 
   return (
-    <div className="max-w-xl mx-auto p-4">
+    <div className="p-6">
 
-      {/* PRODUCT IMAGE */}
+      <h1 className="text-2xl font-bold mb-4">{product.name}</h1>
+
       {product.imageUrl && (
-        <div className="relative w-full h-[300px] mb-4">
-          <Image
-            src={product.imageUrl}
-            alt={product.name}
-            fill
-            className="object-contain rounded-lg"
-          />
-        </div>
+        <img
+          src={product.imageUrl}
+          alt={product.name}
+          className="w-full max-w-md rounded mb-4"
+        />
       )}
 
-      {/* PRODUCT INFO */}
-      <h1 className="text-2xl font-bold mb-2">{product.name}</h1>
-      <p className="text-gray-600 mb-4">{product.description}</p>
+      <p className="mb-6">{product.description}</p>
 
-      {/* WHATSAPP CTA */}
-      <a
-        href={whatsappLink}
-        target="_blank"
-        className="block w-full text-center bg-green-600 text-white py-3 rounded-lg mb-4"
-      >
-        Enquire on WhatsApp
-      </a>
+      <div className="flex gap-4">
 
-      {/* AR BUTTON */}
-      {product.arEnabled && (product.arModelGlb || product.arModelUsdz) && (
-        <ARLauncher
+        {product.whatsappNumber && (
+          <button
+            onClick={openWhatsApp}
+            className="bg-green-600 text-white px-4 py-2 rounded"
+          >
+            WhatsApp
+          </button>
+        )}
+
+        {product.arEnabled && product.arModelGlb && (
+          <button
+            onClick={() => setShowAR(true)}
+            className="bg-black text-white px-4 py-2 rounded"
+          >
+            View In Your Room
+          </button>
+        )}
+
+      </div>
+
+      {showAR && (
+        <ARViewer
           glb={product.arModelGlb}
           usdz={product.arModelUsdz}
         />

@@ -9,12 +9,13 @@ export default function ARViewer({
   glb: string
   usdz?: string
 }) {
+
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!containerRef.current) return
 
-    // load model viewer script only once
+    // Load model-viewer once
     if (!customElements.get("model-viewer")) {
       const script = document.createElement("script")
       script.type = "module"
@@ -25,25 +26,48 @@ export default function ARViewer({
 
     const viewer = document.createElement("model-viewer")
 
+    // 🔥 CORE CONFIG
     viewer.setAttribute("src", glb)
-    if (usdz) viewer.setAttribute("ios-src", usdz)
+
+    if (usdz) {
+      viewer.setAttribute("ios-src", usdz)
+    }
 
     viewer.setAttribute("ar", "")
     viewer.setAttribute("ar-modes", "scene-viewer quick-look webxr")
+    viewer.setAttribute("ar-scale", "auto")
     viewer.setAttribute("camera-controls", "")
     viewer.setAttribute("auto-rotate", "")
     viewer.setAttribute("shadow-intensity", "1")
+    viewer.setAttribute("environment-image", "neutral")
+
+    // 🔥 IMPORTANT → allow camera launch
+    viewer.setAttribute("camera-orbit", "0deg 75deg 2.5m")
+    viewer.setAttribute("interaction-prompt", "auto")
 
     viewer.style.width = "100%"
-    viewer.style.height = "80vh"
+    viewer.style.height = "100vh"
     viewer.style.background = "#fff"
 
     containerRef.current.innerHTML = ""
     containerRef.current.appendChild(viewer)
 
+    // 🔥 AUTO OPEN AR ON MOBILE
+    viewer.addEventListener("load", () => {
+      const isMobile =
+        /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+
+      if (isMobile) {
+        setTimeout(() => {
+          viewer.activateAR()
+        }, 500)
+      }
+    })
+
     return () => {
       containerRef.current?.removeChild(viewer)
     }
+
   }, [glb, usdz])
 
   return <div ref={containerRef} />
