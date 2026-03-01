@@ -7,6 +7,7 @@ export default async function ProductPage({
 }: {
   params: { id: string }
 }) {
+
   const product = await prisma.product.findUnique({
     where: { id: params.id },
     include: {
@@ -16,17 +17,21 @@ export default async function ProductPage({
 
   if (!product) return notFound()
 
-  // 🔥 THIS FIXES NEXT SERVER CRASH
-  const safeProduct = JSON.parse(JSON.stringify({
-    id: product.id,
-    name: product.name,
-    description: product.description ?? "",
-    imageUrl: product.imageUrl ?? "",
-    whatsappNumber: product.shop?.whatsappNumber ?? "",
-    arModelGlb: product.arModelGlb ?? "",
-    arModelUsdz: product.arModelUsdz ?? "",
-    arEnabled: product.shop?.arEnabled ?? false,
-  }))
+  return (
+    <ProductClient
+      product={{
+        id: product.id,
+        name: product.name,
+        description: product.description,
+        imageUrl: product.imageUrl ?? null,
 
-  return <ProductClient product={safeProduct} />
+        // IMPORTANT FIX
+        whatsappNumber: product.shop?.whatsappNumber ?? null,
+
+        arModelGlb: product.arModelGlb ?? null,
+        arModelUsdz: product.arModelUsdz ?? null,
+        arEnabled: product.shop?.arEnabled ?? false,
+      }}
+    />
+  )
 }
