@@ -17,14 +17,20 @@ model User {
 }
 
 model Product {
-  id          String         @id @default(uuid())
+  id          String   @id @default(uuid())
   name        String
   description String
   category    String
-  arModelUrl  String?
+
+  imageUrl    String?      // ✅ MAIN IMAGE FOR STORE CARD
+
+  arModelGlb  String?
+  arModelUsdz String?
+
   shopId      String
-  createdAt   DateTime       @default(now())
-  shop        Shop           @relation(fields: [shopId], references: [id])
+  createdAt   DateTime     @default(now())
+
+  shop        Shop         @relation(fields: [shopId], references: [id])
   images      ProductImage[]
 }
 

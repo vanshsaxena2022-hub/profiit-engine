@@ -1,90 +1,59 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import ARViewer from "@/components/ARViewer";
+import Image from "next/image"
+import ARLauncher from "@/components/ARLauncher"
 
-export default function ProductClient({ product }: any) {
-  const [index, setIndex] = useState(0);
-  const [showAR, setShowAR] = useState(false);
+type Product = {
+  id: string
+  name: string
+  description: string
+  imageUrl?: string | null
+  whatsappNumber: string
+  arModelGlb?: string | null
+  arModelUsdz?: string | null
+  arEnabled: boolean
+}
 
-  const images = Array.isArray(product.images)
-    ? product.images
-    : [];
+export default function ProductClient({ product }: { product: Product }) {
 
-  const currentImage =
-    images[index]?.imageUrl || "/placeholder.png";
+  const whatsappLink = `https://wa.me/${product.whatsappNumber}?text=Hi, I'm interested in ${product.name}`
 
   return (
-    <div className="min-h-screen bg-white p-6 max-w-xl mx-auto">
-      {/* IMAGE */}
-      <div className="rounded-2xl overflow-hidden border">
-        <img
-          src={currentImage}
-          className="w-full h-80 object-cover"
-          alt={product.name}
+    <div className="max-w-xl mx-auto p-4">
+
+      {/* PRODUCT IMAGE */}
+      {product.imageUrl && (
+        <div className="relative w-full h-[300px] mb-4">
+          <Image
+            src={product.imageUrl}
+            alt={product.name}
+            fill
+            className="object-contain rounded-lg"
+          />
+        </div>
+      )}
+
+      {/* PRODUCT INFO */}
+      <h1 className="text-2xl font-bold mb-2">{product.name}</h1>
+      <p className="text-gray-600 mb-4">{product.description}</p>
+
+      {/* WHATSAPP CTA */}
+      <a
+        href={whatsappLink}
+        target="_blank"
+        className="block w-full text-center bg-green-600 text-white py-3 rounded-lg mb-4"
+      >
+        Enquire on WhatsApp
+      </a>
+
+      {/* AR BUTTON */}
+      {product.arEnabled && (product.arModelGlb || product.arModelUsdz) && (
+        <ARLauncher
+          glb={product.arModelGlb}
+          usdz={product.arModelUsdz}
         />
-      </div>
-
-      {/* DOTS */}
-      {images.length > 1 && (
-        <div className="flex justify-center gap-2 my-3">
-          {images.map((_: any, i: number) => (
-            <div
-              key={i}
-              onClick={() => setIndex(i)}
-              className={`w-2.5 h-2.5 rounded-full cursor-pointer ${
-                i === index ? "bg-black" : "bg-gray-300"
-              }`}
-            />
-          ))}
-        </div>
       )}
 
-      {/* INFO */}
-      <h1 className="text-2xl font-bold mt-4">
-        {product.name}
-      </h1>
-
-      <p className="text-gray-600 mb-6">
-        {product.description}
-      </p>
-
-      {/* BUTTONS */}
-      <div className="flex gap-3">
-        <a
-          href={`https://wa.me/${
-            product.shop?.whatsappNumber || ""
-          }`}
-          className="flex-1 bg-green-500 text-white py-3 rounded-xl text-center font-semibold"
-        >
-          WhatsApp
-        </a>
-
-        {product.arModelUrl && (
-          <button
-            onClick={() => setShowAR(true)}
-            className="flex-1 bg-black text-white py-3 rounded-xl font-semibold"
-          >
-            View in AR
-          </button>
-        )}
-      </div>
-
-      {/* AR MODAL */}
-      {showAR && product.arModelUrl && (
-        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl p-4 max-w-2xl w-full relative">
-            <button
-              onClick={() => setShowAR(false)}
-              className="absolute top-3 right-3 bg-black text-white px-3 py-1 rounded-lg"
-            >
-              Close
-            </button>
-
-            <ARViewer src={product.arModelUrl} />
-          </div>
-        </div>
-      )}
     </div>
-  );
+  )
 }

@@ -33,7 +33,7 @@ export default async function DashboardPage() {
     prisma.product.count({
       where: {
         shopId,
-        arModelUrl: { not: null },
+        arModelGlb: { not: null },
       },
     }),
 

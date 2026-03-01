@@ -11,8 +11,11 @@ export async function POST(req: Request) {
 
     const updated = await prisma.product.update({
       where: { id: productId },
-      data: { arModelUrl: arUrl },
-    });
+      data: {
+      arModelGlb: arUrl,
+      arModelUsdz: null
+          },
+          });
 
     return NextResponse.json({ success: true });
 
