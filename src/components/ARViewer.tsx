@@ -59,8 +59,10 @@ export default function ARViewer({
 
       if (isMobile) {
         setTimeout(() => {
-          viewer.activateAR()
-        }, 500)
+          if ((viewer as any).activateAR) {
+            (viewer as any).activateAR()
+             }  
+                  }, 500)
       }
     })
 

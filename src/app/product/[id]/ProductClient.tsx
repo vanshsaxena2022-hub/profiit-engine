@@ -1,72 +1,69 @@
 "use client"
 
-import { useState } from "react"
-import ARViewer from "@/components/ARViewer"
+import dynamic from "next/dynamic"
 
-type ProductType = {
+// 🔒 AR loads ONLY on browser
+const ARViewer = dynamic(() => import("@/components/ARViewer"), {
+  ssr: false,
+})
+
+type Product = {
   id: string
   name: string
-  description: string
+  description?: string
   imageUrl?: string | null
   whatsappNumber?: string | null
+  arEnabled?: boolean
   arModelGlb?: string | null
   arModelUsdz?: string | null
-  arEnabled?: boolean
 }
 
-export default function ProductClient({ product }: { product: ProductType }) {
+export default function ProductClient({ product }: { product: Product }) {
 
-  const [showAR, setShowAR] = useState(false)
+  const handleWhatsApp = () => {
+    if (!product.whatsappNumber) return
+
+    const message = `Hi, I'm interested in ${product.name}`
+    const url = `https://wa.me/${product.whatsappNumber}?text=${encodeURIComponent(message)}`
+    window.open(url, "_blank")
+  }
 
   return (
-    <div className="p-6">
+    <div className="min-h-screen bg-white p-4">
 
-      <h1 className="text-2xl font-bold">{product.name}</h1>
-
-      <p className="mt-2 text-gray-600">{product.description}</p>
-
+      {/* Product Image */}
       {product.imageUrl && (
         <img
           src={product.imageUrl}
           alt={product.name}
-          className="w-full max-w-md mt-4 rounded-xl"
+          className="w-full max-h-[400px] object-cover rounded-xl"
         />
       )}
 
-      {product.whatsappNumber && (
-        <a
-          href={`https://wa.me/${product.whatsappNumber}`}
-          target="_blank"
-          className="block mt-4 bg-green-600 text-white px-6 py-3 rounded-xl text-center"
-        >
-          WhatsApp
-        </a>
+      {/* Product Info */}
+      <h1 className="text-2xl font-bold mt-4">{product.name}</h1>
+
+      {product.description && (
+        <p className="text-gray-600 mt-2">{product.description}</p>
       )}
 
-      {product.arEnabled && product.arModelGlb && (
+      {/* WhatsApp CTA */}
+      {product.whatsappNumber && (
         <button
-          onClick={() => setShowAR(true)}
-          className="bg-black text-white px-6 py-3 rounded-xl mt-4"
+          onClick={handleWhatsApp}
+          className="mt-4 w-full bg-green-600 text-white py-3 rounded-xl font-semibold"
         >
-          View in your space
+          Enquire on WhatsApp
         </button>
       )}
 
-      {showAR && product.arModelGlb && (
-        <div className="fixed inset-0 bg-white z-50">
-
-          <button
-            onClick={() => setShowAR(false)}
-            className="absolute top-4 right-4 bg-black text-white px-4 py-2 rounded"
-          >
-            Close
-          </button>
-
+      {/* 🔥 AR Viewer (only if valid) */}
+      {product.arEnabled && product.arModelGlb && (
+        <div className="mt-6">
           <ARViewer
             glb={product.arModelGlb}
-            usdz={product.arModelUsdz || undefined}
+            usdz={product.arModelUsdz ?? undefined}
           />
-
         </div>
       )}
 
