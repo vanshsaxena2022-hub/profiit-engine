@@ -3,16 +3,15 @@ import ProductClient from "./ProductClient"
 import { notFound } from "next/navigation"
 
 export default async function ProductPage({
-  params
+  params,
 }: {
   params: { id: string }
 }) {
-
   const product = await prisma.product.findUnique({
     where: { id: params.id },
     include: {
-      shop: true
-    }
+      shop: true,
+    },
   })
 
   if (!product) return notFound()
@@ -22,12 +21,12 @@ export default async function ProductPage({
       product={{
         id: product.id,
         name: product.name,
-        description: product.description,
+        description: product.description ?? "",
         imageUrl: product.imageUrl ?? "",
+        whatsappNumber: product.shop?.whatsappNumber ?? "",
         arModelGlb: product.arModelGlb ?? "",
         arModelUsdz: product.arModelUsdz ?? "",
-        arEnabled: product.shop.arEnabled,
-        whatsappNumber: product.shop.whatsappNumber // ✅ FIXED SOURCE
+        arEnabled: product.shop?.arEnabled ?? false,
       }}
     />
   )
