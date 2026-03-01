@@ -10,17 +10,21 @@ export default async function ProductPage({
 
   const product = await prisma.product.findUnique({
     where: { id: params.id },
-    include: { shop: true },
+    include: { 
+      shop: true,
+      images: true
+    },
   })
 
   if (!product) return notFound()
 
-  // 🔥 STRIP PRISMA OBJECT → SAFE JSON
   const safeProduct = JSON.parse(JSON.stringify({
     id: product.id,
     name: product.name,
     description: product.description,
-    imageUrl: product.imageUrl,
+
+    // ✅ FIXED IMAGE
+    imageUrl: product.images?.[0]?.imageUrl ?? null,
 
     whatsappNumber: product.shop?.whatsappNumber ?? null,
     arEnabled: product.shop?.arEnabled ?? false,
