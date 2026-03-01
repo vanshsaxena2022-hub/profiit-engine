@@ -16,22 +16,18 @@ export default async function ProductPage({
     },
   })
 
-  if (!product) return notFound()
+  if (!product || !product.shop) return notFound()
 
-  const safeProduct = JSON.parse(JSON.stringify({
+  const safeProduct = {
     id: product.id,
-    name: product.name,
-    description: product.description,
-
-    // ✅ FIXED IMAGE
+    name: product.name ?? "",
+    description: product.description ?? "",
     imageUrl: product.images?.[0]?.imageUrl ?? null,
-
-    whatsappNumber: product.shop?.whatsappNumber ?? null,
-    arEnabled: product.shop?.arEnabled ?? false,
-
-    arModelGlb: product.arModelGlb,
-    arModelUsdz: product.arModelUsdz,
-  }))
+    whatsappNumber: product.shop.whatsappNumber ?? null,
+    arEnabled: product.shop.arEnabled ?? false,
+    arModelGlb: product.arModelGlb ?? null,
+    arModelUsdz: product.arModelUsdz ?? null,
+  }
 
   return <ProductClient product={safeProduct} />
 }
