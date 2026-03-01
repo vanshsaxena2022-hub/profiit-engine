@@ -13,33 +13,36 @@ export default async function ProductPage({
 
   let product = null
 
+  // STEP 1 — Fetch product safely
   try {
-    // STEP 1 — Fetch main product
     product = await prisma.product.findUnique({
-      where: { id: params.id }
+      where: {
+        id: params.id
+      }
     })
-
-    if (!product) return notFound()
-
   } catch (error) {
-    console.error("Product fetch error:", error)
-    return <div>Unable to load product</div>
+    console.error("Product query failed:", error)
+    return <div>Database connection issue</div>
+  }
+
+  if (!product) {
+    return <div>Product not found</div>
   }
 
   // STEP 2 — Fetch shop safely
   let shop = null
   try {
-    if (product.shopId) {
-      shop = await prisma.shop.findUnique({
-        where: { id: product.shopId },
-        select: {
-          whatsappNumber: true,
-          arEnabled: true
-        }
-      })
-    }
+    shop = await prisma.shop.findUnique({
+      where: {
+        id: product.shopId
+      },
+      select: {
+        whatsappNumber: true,
+        arEnabled: true
+      }
+    })
   } catch (error) {
-    console.error("Shop fetch error:", error)
+    console.error("Shop fetch failed:", error)
   }
 
   // STEP 3 — Fetch images safely
@@ -47,16 +50,18 @@ export default async function ProductPage({
 
   try {
     images = await prisma.productImage.findMany({
-      where: { productId: product.id },
+      where: {
+        productId: product.id
+      },
       select: {
         imageUrl: true
       }
     })
   } catch (error) {
-    console.error("Image fetch error:", error)
+    console.error("Images fetch failed:", error)
   }
 
-  // STEP 4 — Build UI-safe object
+  // STEP 4 — Safe UI object
   const safeProduct = {
     id: product.id,
     name: product.name ?? "Product",
