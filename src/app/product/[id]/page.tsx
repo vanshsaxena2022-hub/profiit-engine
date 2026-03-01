@@ -10,28 +10,24 @@ export default async function ProductPage({
 
   const product = await prisma.product.findUnique({
     where: { id: params.id },
-    include: {
-      shop: true,
-    },
+    include: { shop: true },
   })
 
   if (!product) return notFound()
 
-  return (
-    <ProductClient
-      product={{
-        id: product.id,
-        name: product.name,
-        description: product.description,
-        imageUrl: product.imageUrl ?? null,
+  // 🔥 STRIP PRISMA OBJECT → SAFE JSON
+  const safeProduct = JSON.parse(JSON.stringify({
+    id: product.id,
+    name: product.name,
+    description: product.description,
+    imageUrl: product.imageUrl,
 
-        // IMPORTANT FIX
-        whatsappNumber: product.shop?.whatsappNumber ?? null,
+    whatsappNumber: product.shop?.whatsappNumber ?? null,
+    arEnabled: product.shop?.arEnabled ?? false,
 
-        arModelGlb: product.arModelGlb ?? null,
-        arModelUsdz: product.arModelUsdz ?? null,
-        arEnabled: product.shop?.arEnabled ?? false,
-      }}
-    />
-  )
+    arModelGlb: product.arModelGlb,
+    arModelUsdz: product.arModelUsdz,
+  }))
+
+  return <ProductClient product={safeProduct} />
 }
