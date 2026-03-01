@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic"
 import { prisma } from "@/lib/prisma"
 import ProductClient from "./ProductClient"
 import { notFound } from "next/navigation"
