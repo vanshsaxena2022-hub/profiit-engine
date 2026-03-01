@@ -16,18 +16,17 @@ export default async function ProductPage({
 
   if (!product) return notFound()
 
-  return (
-    <ProductClient
-      product={{
-        id: product.id,
-        name: product.name,
-        description: product.description ?? "",
-        imageUrl: product.imageUrl ?? "",
-        whatsappNumber: product.shop?.whatsappNumber ?? "",
-        arModelGlb: product.arModelGlb ?? "",
-        arModelUsdz: product.arModelUsdz ?? "",
-        arEnabled: product.shop?.arEnabled ?? false,
-      }}
-    />
-  )
+  // 🔥 THIS FIXES NEXT SERVER CRASH
+  const safeProduct = JSON.parse(JSON.stringify({
+    id: product.id,
+    name: product.name,
+    description: product.description ?? "",
+    imageUrl: product.imageUrl ?? "",
+    whatsappNumber: product.shop?.whatsappNumber ?? "",
+    arModelGlb: product.arModelGlb ?? "",
+    arModelUsdz: product.arModelUsdz ?? "",
+    arEnabled: product.shop?.arEnabled ?? false,
+  }))
+
+  return <ProductClient product={safeProduct} />
 }
