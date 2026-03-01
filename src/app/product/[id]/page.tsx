@@ -11,32 +11,57 @@ export default async function ProductPage({
   params: { id: string }
 }) {
 
-  let product = null
+  let product
 
   try {
+    // STEP 1 — fetch ONLY product first (safe)
     product = await prisma.product.findUnique({
-      where: { id: params.id },
-      include: { 
-        shop: true,
-        images: true
-      },
+      where: { id: params.id }
     })
+
+    if (!product) return notFound()
+
   } catch (err) {
-    console.error("PRISMA ERROR:", err)
+    console.error("Product fetch failed:", err)
     return <div>Database error</div>
   }
 
-  if (!product) {
-    return <div>Product not found</div>
+  // STEP 2 — fetch relations separately (safe)
+  let shop = null
+  let images = []
+
+  try {
+    if (product.shopId) {
+      shop = await prisma.shop.findUnique({
+        where: { id: product.shopId },
+        select: {
+          whatsappNumber: true,
+          arEnabled: true
+        }
+      })
+    }
+  } catch (err) {
+    console.error("Shop fetch failed:", err)
+  }
+
+  try {
+    images = await prisma.productImage.findMany({
+      where: { productId: product.id },
+      select: {
+        imageUrl: true
+      }
+    })
+  } catch (err) {
+    console.error("Images fetch failed:", err)
   }
 
   const safeProduct = {
     id: product.id,
     name: product.name ?? "",
     description: product.description ?? "",
-    imageUrl: product.images?.[0]?.imageUrl ?? null,
-    whatsappNumber: product.shop?.whatsappNumber ?? null,
-    arEnabled: product.shop?.arEnabled ?? false,
+    imageUrl: images?.[0]?.imageUrl ?? null,
+    whatsappNumber: shop?.whatsappNumber ?? null,
+    arEnabled: shop?.arEnabled ?? false,
     arModelGlb: product.arModelGlb ?? null,
     arModelUsdz: product.arModelUsdz ?? null,
   }
