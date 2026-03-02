@@ -15,7 +15,7 @@ export default async function ProductPage({
 
   try {
     const result: any = await prisma.$queryRawUnsafe(`
-      SELECT * FROM "Product"
+      SELECT * FROM public."Product"
       WHERE id = '${params.id}'
     `)
 
