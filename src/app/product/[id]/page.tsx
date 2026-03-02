@@ -4,7 +4,7 @@ export const revalidate = 0
 
 import { prisma } from "@/lib/prisma"
 import ProductClient from "./ProductClient"
-
+console.log("Runtime:", process.env.NEXT_RUNTIME)
 export default async function ProductPage({
   params,
 }: {
