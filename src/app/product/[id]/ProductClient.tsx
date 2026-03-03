@@ -27,10 +27,6 @@ export default function ProductClient({ product }: { product: Product }) {
     const url = `https://wa.me/${product.whatsappNumber}?text=${encodeURIComponent(message)}`
     window.open(url, "_blank")
   }
-<pre style={{ background: "#000", color: "#0f0", padding: 10 }}>
-  {JSON.stringify(product, null, 2)}
-</pre>
-
   return (
     <div className="min-h-screen bg-white p-4">
 
@@ -42,6 +38,10 @@ export default function ProductClient({ product }: { product: Product }) {
           className="w-full max-h-[400px] object-cover rounded-xl"
         />
       )}
+
+       <pre style={{ background: "#000", color: "#0f0", padding: 10 }}>
+       {JSON.stringify(product, null, 2)}
+       </pre>
 
       {/* Product Info */}
       <h1 className="text-2xl font-bold mt-4">{product.name}</h1>
