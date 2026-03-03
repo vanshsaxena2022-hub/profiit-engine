@@ -9,13 +9,13 @@ export default function ARViewer({
   glb: string
   usdz?: string
 }) {
-
   const containerRef = useRef<HTMLDivElement>(null)
+  const viewerRef = useRef<any>(null)
 
   useEffect(() => {
     if (!containerRef.current) return
 
-    // Load model-viewer once
+    // Load model-viewer script once
     if (!customElements.get("model-viewer")) {
       const script = document.createElement("script")
       script.type = "module"
@@ -26,7 +26,6 @@ export default function ARViewer({
 
     const viewer = document.createElement("model-viewer")
 
-    // 🔥 CORE CONFIG
     viewer.setAttribute("src", glb)
 
     if (usdz) {
@@ -36,41 +35,38 @@ export default function ARViewer({
     viewer.setAttribute("ar", "")
     viewer.setAttribute("ar-modes", "scene-viewer quick-look webxr")
     viewer.setAttribute("ar-scale", "auto")
-    viewer.setAttribute("camera-controls", "")
-    viewer.setAttribute("auto-rotate", "")
-    viewer.setAttribute("shadow-intensity", "1")
-    viewer.setAttribute("environment-image", "neutral")
 
-    // 🔥 IMPORTANT → allow camera launch
-    viewer.setAttribute("camera-orbit", "0deg 75deg 2.5m")
-    viewer.setAttribute("interaction-prompt", "auto")
-
-    viewer.style.width = "100%"
-    viewer.style.height = "100vh"
-    viewer.style.background = "#fff"
+    // 🔥 Hide viewer completely (no inline rendering)
+    viewer.style.width = "0px"
+    viewer.style.height = "0px"
+    viewer.style.position = "absolute"
 
     containerRef.current.innerHTML = ""
     containerRef.current.appendChild(viewer)
 
-    // 🔥 AUTO OPEN AR ON MOBILE
-    viewer.addEventListener("load", () => {
-      const isMobile =
-        /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
-
-      if (isMobile) {
-        setTimeout(() => {
-          if ((viewer as any).activateAR) {
-            (viewer as any).activateAR()
-             }  
-                  }, 500)
-      }
-    })
+    viewerRef.current = viewer
 
     return () => {
       containerRef.current?.removeChild(viewer)
     }
-
   }, [glb, usdz])
 
-  return <div ref={containerRef} />
+  const launchAR = () => {
+    if (viewerRef.current && viewerRef.current.activateAR) {
+      viewerRef.current.activateAR()
+    }
+  }
+
+  return (
+    <div>
+      <div ref={containerRef} />
+
+      <button
+        onClick={launchAR}
+        className="w-full bg-black text-white py-3 rounded-xl font-semibold hover:opacity-90 transition"
+      >
+        View in AR
+      </button>
+    </div>
+  )
 }

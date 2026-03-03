@@ -6,19 +6,21 @@ const ARViewer = dynamic(() => import("@/components/ARViewer"), {
   ssr: false,
 })
 
-interface ProductProps {
-  product: {
-    id: string
-    name: string
-    description: string
-    imageUrl: string | null
-    whatsappNumber: string | null
-    arModelGlb: string | null
-    arModelUsdz: string | null
-  }
+interface ProductType {
+  id: string
+  name: string
+  description: string
+  imageUrl: string | null
+  whatsappNumber: string | null
+  arModelGlb: string | null
+  arModelUsdz: string | null
 }
 
-export default function ProductClient({ product }: ProductProps) {
+export default function ProductClient({
+  product,
+}: {
+  product: ProductType
+}) {
   const handleWhatsApp = () => {
     if (!product.whatsappNumber) return
 
@@ -27,45 +29,49 @@ export default function ProductClient({ product }: ProductProps) {
   }
 
   return (
-    <div className="min-h-screen bg-white px-6 py-8 max-w-4xl mx-auto">
+    <div className="min-h-screen bg-gray-100 py-10">
+      <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-md p-6">
 
-      {/* Product Image */}
-      {product.imageUrl && (
-        <img
-          src={product.imageUrl}
-          alt={product.name}
-          className="w-full rounded-lg mb-6"
-        />
-      )}
-
-      {/* Product Info */}
-      <h1 className="text-2xl font-bold mb-2">{product.name}</h1>
-      <p className="text-gray-600 mb-6">{product.description}</p>
-
-      {/* WhatsApp Button */}
-      {product.whatsappNumber && (
-        <button
-          onClick={handleWhatsApp}
-          className="w-full bg-green-600 text-white py-3 rounded-lg mb-6"
-        >
-          Enquire on WhatsApp
-        </button>
-      )}
-
-      {/* AR Section — SHOW ONLY IF GLB EXISTS */}
-      {product.arModelGlb && (
-        <div className="mt-8">
-          <h2 className="text-xl font-semibold mb-4">
-            View in AR
-          </h2>
-
-          <ARViewer
-            glb={product.arModelGlb}
-            usdz={product.arModelUsdz ?? undefined}
+        {/* Product Image */}
+        {product.imageUrl && (
+          <img
+            src={product.imageUrl}
+            alt={product.name}
+            className="w-full h-80 object-cover rounded-xl mb-6"
           />
-        </div>
-      )}
+        )}
 
+        {/* Product Name */}
+        <h1 className="text-3xl font-bold mb-2">
+          {product.name}
+        </h1>
+
+        {/* Description */}
+        <p className="text-gray-600 leading-relaxed mb-6">
+          {product.description}
+        </p>
+
+        {/* WhatsApp Button */}
+        {product.whatsappNumber && (
+          <button
+            onClick={handleWhatsApp}
+            className="w-full bg-green-600 text-white py-3 rounded-xl mb-4 font-semibold"
+          >
+            Enquire on WhatsApp
+          </button>
+        )}
+
+        {/* AR Button (only if model exists) */}
+        {product.arModelGlb && (
+          <div className="mt-4">
+            <ARViewer
+              glb={product.arModelGlb}
+              usdz={product.arModelUsdz ?? undefined}
+            />
+          </div>
+        )}
+
+      </div>
     </div>
   )
 }
