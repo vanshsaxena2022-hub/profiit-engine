@@ -34,11 +34,13 @@ export default function ProductClient({
 
         {/* Product Image */}
         {product.imageUrl && (
+         <div className="w-full bg-gray-100 rounded-xl mb-6 flex items-center justify-center">
           <img
-            src={product.imageUrl}
-            alt={product.name}
-            className="w-full h-80 object-cover rounded-xl mb-6"
-          />
+          src={product.imageUrl}
+          alt={product.name}
+          className="max-h-96 w-auto object-contain"
+                />
+            </div>
         )}
 
         {/* Product Name */}
