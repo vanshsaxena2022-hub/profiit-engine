@@ -17,15 +17,14 @@ export default async function ProductPage({
     const product = await prisma.product.findUnique({
       where: { id },
       include: {
-        shop: {
-          select: {
-            whatsappNumber: true,
-            arEnabled: true,
-          },
-        },
         images: {
           select: {
             imageUrl: true,
+          },
+        },
+        shop: {
+          select: {
+            whatsappNumber: true,
           },
         },
       },
@@ -39,7 +38,6 @@ export default async function ProductPage({
       description: product.description ?? "",
       imageUrl: product.images?.[0]?.imageUrl ?? null,
       whatsappNumber: product.shop?.whatsappNumber ?? null,
-      arEnabled: product.shop?.arEnabled ?? false,
       arModelGlb: product.arModelGlb ?? null,
       arModelUsdz: product.arModelUsdz ?? null,
     }
