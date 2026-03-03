@@ -2,18 +2,12 @@ export const dynamic = "force-dynamic"
 export const runtime = "nodejs"
 export const revalidate = 0
 
-import { prisma } from "@/lib/prisma"
-
-export default async function ProductPage({
-  params,
-}: {
-  params: { id: string }
-}) {
-
+export default async function ProductPage(props: any) {
+  // Print EVERYTHING Next is giving us
   return (
     <div style={{ padding: 40 }}>
-      <h1>Param Debug</h1>
-      <pre>{JSON.stringify(params, null, 2)}</pre>
+      <h1>Full Props Debug</h1>
+      <pre>{JSON.stringify(props, null, 2)}</pre>
     </div>
   )
 }
