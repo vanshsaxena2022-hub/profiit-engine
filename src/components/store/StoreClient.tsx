@@ -1,5 +1,6 @@
 "use client";
 
+import PeddleWatermark from "@/components/PeddleWatermark"
 import { useState } from "react";
 import CategoryFilter from "@/components/store/CategoryFilter";
 import ProductCard from "@/components/store/ProductCard";
@@ -39,6 +40,7 @@ export default function StoreClient({
           ))}
         </div>
       )}
+      <PeddleWatermark />
     </div>
   );
 }
