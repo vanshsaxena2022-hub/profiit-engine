@@ -36,11 +36,18 @@ export default async function ProductPage({
       id: product.id,
       name: product.name ?? "",
       description: product.description ?? "",
+
+      // ✅ FIX — no direct imageUrl access
       imageUrl: product.images?.[0]?.imageUrl ?? null,
+
+      // ✅ multiple images
+      images: product.images.map((img) => img.imageUrl),
+
       whatsappNumber: product.shop?.whatsappNumber ?? null,
+
       arModelGlb: product.arModelGlb ?? null,
       arModelUsdz: product.arModelUsdz ?? null,
-    }
+      }
 
     return <ProductClient product={safeProduct} />
   } catch (error) {
