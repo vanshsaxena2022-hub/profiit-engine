@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useRef, useState } from "react"
 import PeddleWatermark from "@/components/PeddleWatermark"
 import dynamic from "next/dynamic"
 
@@ -13,8 +13,8 @@ interface ProductType {
   name: string
   description: string
 
-  imageUrl: string | null   // ✅ keep
-  images?: string[]         // ✅ add
+  imageUrl: string | null
+  images?: string[]
 
   whatsappNumber: string | null
   arModelGlb: string | null
@@ -26,15 +26,15 @@ export default function ProductClient({
 }: {
   product: ProductType
 }) {
+  const scrollRef = useRef<HTMLDivElement>(null)
   const [index, setIndex] = useState(0)
 
   const handleWhatsApp = () => {
     if (!product.whatsappNumber) return
-    const url = `https://wa.me/${product.whatsappNumber}`
-    window.open(url, "_blank")
+    window.open(`https://wa.me/${product.whatsappNumber}`, "_blank")
   }
 
-  // ✅ merge logic (no breaking change)
+  // ✅ merge images safely
   const allImages =
     product.images && product.images.length > 0
       ? product.images
@@ -42,75 +42,107 @@ export default function ProductClient({
       ? [product.imageUrl]
       : []
 
+  // 👉 scroll to image (for dots + arrows)
+  const scrollToIndex = (i: number) => {
+    if (!scrollRef.current) return
+
+    const width = scrollRef.current.clientWidth
+    scrollRef.current.scrollTo({
+      left: i * width,
+      behavior: "smooth",
+    })
+
+    setIndex(i)
+  }
+
+  const next = () => {
+    const newIndex = index === allImages.length - 1 ? 0 : index + 1
+    scrollToIndex(newIndex)
+  }
+
+  const prev = () => {
+    const newIndex = index === 0 ? allImages.length - 1 : index - 1
+    scrollToIndex(newIndex)
+  }
+
   return (
     <div className="min-h-screen bg-gray-100 py-10">
       <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-md p-6">
 
         {/* ✅ CAROUSEL */}
         {allImages.length > 0 && (
-          <div className="mb-6">
+          <div className="mb-6 relative">
 
-            <div className="flex justify-center">
-              <img
-                src={allImages[index]}
-                alt={product.name}
-                className="max-h-[300px] w-auto rounded-xl shadow-sm"
-              />
+            {/* SCROLL AREA (SWIPE ENABLED) */}
+            <div
+              ref={scrollRef}
+              className="flex overflow-x-auto snap-x snap-mandatory scroll-smooth no-scrollbar"
+              onScroll={(e) => {
+                const el = e.currentTarget
+                const newIndex = Math.round(el.scrollLeft / el.clientWidth)
+                setIndex(newIndex)
+              }}
+            >
+              {allImages.map((img, i) => (
+                <div
+                  key={i}
+                  className="snap-center shrink-0 w-full flex justify-center"
+                >
+                  <img
+                    src={img}
+                    alt={product.name}
+                    className="max-h-[300px] w-auto rounded-xl shadow-sm"
+                  />
+                </div>
+              ))}
             </div>
 
-            {/* DOTS */}
+            {/* ✅ ARROW BUTTONS (clean overlay) */}
+            {allImages.length > 1 && (
+              <>
+                <button
+                  onClick={prev}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 text-white w-8 h-8 rounded-full flex items-center justify-center"
+                >
+                  ‹
+                </button>
+
+                <button
+                  onClick={next}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 text-white w-8 h-8 rounded-full flex items-center justify-center"
+                >
+                  ›
+                </button>
+              </>
+            )}
+
+            {/* ✅ DOTS */}
             <div className="flex justify-center gap-2 mt-3">
               {allImages.map((_, i) => (
                 <button
                   key={i}
-                  onClick={() => setIndex(i)}
-                  className={`w-2.5 h-2.5 rounded-full ${
+                  onClick={() => scrollToIndex(i)}
+                  className={`w-2.5 h-2.5 rounded-full transition ${
                     i === index ? "bg-black" : "bg-gray-300"
                   }`}
                 />
               ))}
             </div>
 
-            {/* ARROWS */}
-            {allImages.length > 1 && (
-              <div className="flex justify-between mt-3">
-                <button
-                  onClick={() =>
-                    setIndex((prev) =>
-                      prev === 0 ? allImages.length - 1 : prev - 1
-                    )
-                  }
-                  className="px-3 py-1 bg-gray-200 rounded"
-                >
-                  ◀
-                </button>
-
-                <button
-                  onClick={() =>
-                    setIndex((prev) =>
-                      prev === allImages.length - 1 ? 0 : prev + 1
-                    )
-                  }
-                  className="px-3 py-1 bg-gray-200 rounded"
-                >
-                  ▶
-                </button>
-              </div>
-            )}
           </div>
         )}
 
-        {/* Product Name */}
+        {/* NAME */}
         <h1 className="text-3xl font-bold mb-2">
           {product.name}
         </h1>
 
-        {/* Description */}
+        {/* DESCRIPTION */}
         <p className="text-gray-600 leading-relaxed mb-6">
           {product.description}
         </p>
 
-        {/* WhatsApp */}
+        {/* WHATSAPP */}
         {product.whatsappNumber && (
           <button
             onClick={handleWhatsApp}
@@ -130,7 +162,7 @@ export default function ProductClient({
           </div>
         )}
 
-        {/* Watermark */}
+        {/* WATERMARK */}
         <div className="text-center text-sm text-gray-500 mt-10">
           Proudly Built by <span className="font-semibold">Peddle Profit</span>
         </div>
