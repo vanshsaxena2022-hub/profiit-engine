@@ -36,17 +36,17 @@ export default function ProductClient({
 
   const message = `Hi, I’m interested in this product:
 
-   Product: ${product.name}
-   Link: ${productUrl}
+  Product: ${product.name}
+  Link: ${productUrl}
 
-   Can I know more about it?`
+  Can I know more about it?`
 
-   const encodedMessage = encodeURIComponent(message)
+  const encodedMessage = encodeURIComponent(message)
 
-   const url = `https://wa.me/${product.whatsappNumber}?text=${encodedMessage}`
+  const url = `https://wa.me/${product.whatsappNumber}?text=${encodedMessage}`
 
-   window.open(url, "_blank")
-     }
+  window.open(url, "_blank")
+    }
 
   // ✅ merge images safely
   const allImages =
