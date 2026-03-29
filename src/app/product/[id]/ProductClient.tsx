@@ -29,25 +29,38 @@ export default function ProductClient({
   const scrollRef = useRef<HTMLDivElement>(null)
   const [index, setIndex] = useState(0)
 
-  const handleWhatsApp = () => {
+  const handleWhatsApp = async () => {
   if (!product.whatsappNumber) return
+
+  try {
+    await fetch("/api/track", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        productId: product.id,
+        shopId: product.shopId, // 🔥 REQUIRED
+        type: "whatsapp_click",
+      }),
+    })
+  } catch (err) {
+    console.log("Tracking failed", err)
+  }
 
   const productUrl = window.location.href
 
   const message = `Hi, I’m interested in this product:
 
-  Product: ${product.name}
-  Link: ${productUrl}
+Product: ${product.name}
+Link: ${productUrl}
 
-  Can I know more about it?`
+Can I know more about it?`
 
-  const encodedMessage = encodeURIComponent(message)
-
-  const url = `https://wa.me/${product.whatsappNumber}?text=${encodedMessage}`
+  const url = `https://wa.me/${product.whatsappNumber}?text=${encodeURIComponent(message)}`
 
   window.open(url, "_blank")
-    }
-
+}
   // ✅ merge images safely
   const allImages =
     product.images && product.images.length > 0

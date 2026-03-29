@@ -1,36 +1,44 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-
-export const dynamic = "force-dynamic";
-export const runtime = "nodejs";
+import { prisma } from "@/lib/prisma"
+import { NextResponse } from "next/server"
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    const { productId, type } = await req.json()
 
-    const { shopId, productId, type } = body;
-
-    if (!shopId || !type) {
+    if (!productId || !type) {
       return NextResponse.json(
         { error: "Missing fields" },
         { status: 400 }
-      );
+      )
+    }
+
+    // 🔥 get shopId from product (AUTO FIX)
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+      select: { shopId: true },
+    })
+
+    if (!product) {
+      return NextResponse.json(
+        { error: "Product not found" },
+        { status: 404 }
+      )
     }
 
     await prisma.analytics.create({
       data: {
-        shopId,
-        productId: productId || null,
+        productId,
+        shopId: product.shopId, // ✅ AUTO FETCHED
         type,
       },
-    });
+    })
 
-    return NextResponse.json({ success: true });
-  } catch (err) {
-    console.error("TRACK ERROR:", err);
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error("TRACK ERROR:", error)
     return NextResponse.json(
-      { error: "Tracking failed" },
+      { error: "Server error" },
       { status: 500 }
-    );
+    )
   }
 }
