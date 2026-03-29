@@ -30,9 +30,23 @@ export default function ProductClient({
   const [index, setIndex] = useState(0)
 
   const handleWhatsApp = () => {
-    if (!product.whatsappNumber) return
-    window.open(`https://wa.me/${product.whatsappNumber}`, "_blank")
-  }
+  if (!product.whatsappNumber) return
+
+  const productUrl = window.location.href
+
+  const message = `Hi, I’m interested in this product:
+
+   Product: ${product.name}
+   Link: ${productUrl}
+
+   Can I know more about it?`
+
+   const encodedMessage = encodeURIComponent(message)
+
+   const url = `https://wa.me/${product.whatsappNumber}?text=${encodedMessage}`
+
+   window.open(url, "_blank")
+     }
 
   // ✅ merge images safely
   const allImages =
