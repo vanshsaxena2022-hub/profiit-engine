@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useRef, useState, useEffect } from "react"
 import PeddleWatermark from "@/components/PeddleWatermark"
 import dynamic from "next/dynamic"
 
@@ -28,44 +28,39 @@ export default function ProductClient({
 }) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const [index, setIndex] = useState(0)
+  const [isOpen, setIsOpen] = useState(false)
 
   const handleWhatsApp = async () => {
-  if (!product.whatsappNumber) return
+    if (!product.whatsappNumber) return
 
-  // 🔥 TRACK FIRST
-  try {
-    await fetch("/api/track", {
-     method: "POST",
-     headers: {
-      "Content-Type": "application/json",
-     },
-      body: JSON.stringify({
-      productId: product.id,
-      type: "whatsapp_click",
-      }),
+    try {
+      await fetch("/api/track", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          productId: product.id,
+          type: "whatsapp_click",
+        }),
       })
-      
-  } catch (err) {
-    console.log("Tracking failed", err)
-  }
-
-  // 🔥 THEN REDIRECT
-  const productUrl = window.location.href
-
-  const message = `Hi, I’m interested in this product:
-
-  Product: ${product.name}
-  Link: ${productUrl}
-
-  Can I know more about it?`
-
-  const url = `https://wa.me/${product.whatsappNumber}?text=${encodeURIComponent(message)}`
-
-  window.open(url, "_blank")
+    } catch (err) {
+      console.log("Tracking failed", err)
     }
 
+    const productUrl = window.location.href
 
-  // ✅ merge images safely
+    const message = `Hi, I’m interested in this product:
+
+Product: ${product.name}
+Link: ${productUrl}
+
+Can I know more about it?`
+
+    const url = `https://wa.me/${product.whatsappNumber}?text=${encodeURIComponent(message)}`
+    window.open(url, "_blank")
+  }
+
   const allImages =
     product.images && product.images.length > 0
       ? product.images
@@ -73,7 +68,6 @@ export default function ProductClient({
       ? [product.imageUrl]
       : []
 
-  // 👉 scroll to image (for dots + arrows)
   const scrollToIndex = (i: number) => {
     if (!scrollRef.current) return
 
@@ -85,6 +79,27 @@ export default function ProductClient({
 
     setIndex(i)
   }
+
+  useEffect(() => {
+    const trackView = async () => {
+      try {
+        await fetch("/api/track", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            productId: product.id,
+            type: "link_open",
+          }),
+        })
+      } catch (err) {
+        console.log("Tracking failed", err)
+      }
+    }
+
+    trackView()
+  }, [product.id])
 
   const next = () => {
     const newIndex = index === allImages.length - 1 ? 0 : index + 1
@@ -100,11 +115,10 @@ export default function ProductClient({
     <div className="min-h-screen bg-gray-100 py-10">
       <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-md p-6">
 
-        {/* ✅ CAROUSEL */}
+        {/* CAROUSEL */}
         {allImages.length > 0 && (
           <div className="mb-6 relative">
 
-            {/* SCROLL AREA (SWIPE ENABLED) */}
             <div
               ref={scrollRef}
               className="flex overflow-x-auto snap-x snap-mandatory scroll-smooth no-scrollbar"
@@ -122,32 +136,36 @@ export default function ProductClient({
                   <img
                     src={img}
                     alt={product.name}
-                    className="max-h-[300px] w-auto rounded-xl shadow-sm"
+                    onClick={() => {
+                      setIndex(i)
+                      setIsOpen(true)
+                    }}
+                    className="max-h-[300px] w-auto rounded-xl shadow-sm cursor-pointer hover:scale-105 transition"
                   />
                 </div>
               ))}
             </div>
 
-            {/* ✅ ARROW BUTTONS (clean overlay) */}
+            {/* PREMIUM ARROWS */}
             {allImages.length > 1 && (
               <>
                 <button
                   onClick={prev}
-                  className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 text-white w-8 h-8 rounded-full flex items-center justify-center"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 backdrop-blur-md bg-white/30 border border-white/20 text-black w-10 h-10 rounded-full flex items-center justify-center shadow-md hover:scale-110 transition"
                 >
                   ‹
                 </button>
 
                 <button
                   onClick={next}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 text-white w-8 h-8 rounded-full flex items-center justify-center"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 backdrop-blur-md bg-white/30 border border-white/20 text-black w-10 h-10 rounded-full flex items-center justify-center shadow-md hover:scale-110 transition"
                 >
                   ›
                 </button>
               </>
             )}
 
-            {/* ✅ DOTS */}
+            {/* DOTS */}
             <div className="flex justify-center gap-2 mt-3">
               {allImages.map((_, i) => (
                 <button
@@ -159,7 +177,23 @@ export default function ProductClient({
                 />
               ))}
             </div>
+          </div>
+        )}
 
+        {/* FULLSCREEN IMAGE VIEW */}
+        {isOpen && (
+          <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center">
+            <button
+              onClick={() => setIsOpen(false)}
+              className="absolute top-6 right-6 text-white text-3xl"
+            >
+              ✕
+            </button>
+
+            <img
+              src={allImages[index]}
+              className="max-h-[90vh] max-w-[90vw] rounded-xl"
+            />
           </div>
         )}
 

@@ -4,6 +4,7 @@ import PeddleWatermark from "@/components/PeddleWatermark"
 import { useState } from "react";
 import CategoryFilter from "@/components/store/CategoryFilter";
 import ProductCard from "@/components/store/ProductCard";
+import { useEffect } from "react";
 
 export default function StoreClient({
   products,
