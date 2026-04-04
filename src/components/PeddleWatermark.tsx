@@ -7,7 +7,7 @@ export default function PeddleWatermark() {
       target="_blank"
       className="fixed bottom-4 right-4 z-50 bg-black text-white text-xs px-4 py-2 rounded-lg shadow-lg hover:scale-105 transition"
     >
-      Build your catalogue with <span className="font-semibold">Peddle Profit</span>
+      Build your catalogue with <span className="font-semibold">Peddle Profiit</span>
     </a>
   )
 }
