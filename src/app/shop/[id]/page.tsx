@@ -8,7 +8,6 @@ import StoreClient from "@/components/store/StoreClient";
 
 export default async function ShopPage(props: any) {
   try {
-    // ✅ robust param handling (important for Next 15/16)
     const params = await props.params;
     const shopId = params?.id;
 
@@ -24,6 +23,7 @@ export default async function ShopPage(props: any) {
       where: { id: shopId },
       include: {
         products: {
+          take: 20, // 🔥 LIMIT PRODUCTS (critical fix)
           include: {
             images: {
               select: {
@@ -46,13 +46,16 @@ export default async function ShopPage(props: any) {
       );
     }
 
-    // ✅ safe serialization for server → client
     const safeProducts = JSON.parse(
-      JSON.stringify(shop.products)
+      JSON.stringify(shop.products || [])
     );
 
     const categories = Array.from(
-      new Set(safeProducts.map((p: any) => p.category))
+      new Set(
+        safeProducts
+          .map((p: any) => p.category)
+          .filter(Boolean) // 🔥 prevent undefined/null categories
+      )
     );
 
     return (
@@ -63,9 +66,10 @@ export default async function ShopPage(props: any) {
           logoUrl={shop.logoUrl}
         />
 
+        {/* 🔥 SAFE PASSING */}
         <StoreClient
-          products={safeProducts}
-          categories={categories}
+          products={safeProducts || []}
+          categories={categories || []}
           slug={shop.slug}
         />
       </div>

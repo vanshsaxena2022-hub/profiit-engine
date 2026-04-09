@@ -9,7 +9,7 @@ export default function ProductCard({
   product: any;
   shopSlug: string;
 }) {
-  // ✅ correct image mapping
+  // ✅ safe image fallback
   const image =
     product?.images?.[0]?.imageUrl || "/placeholder.png";
 
@@ -23,19 +23,22 @@ export default function ProductCard({
         <img
           src={image}
           alt={product?.name || "product"}
-          className="w-full h-full object-cover"
           loading="lazy"
+          onError={(e) => {
+            e.currentTarget.src = "/placeholder.png"; // 🔥 fallback if image fails
+          }}
+          className="w-full h-full object-cover"
         />
       </div>
 
       {/* content */}
       <div className="p-3">
         <h3 className="font-semibold text-sm line-clamp-2">
-          {product?.name}
+          {product?.name || "Untitled Product"}
         </h3>
 
         <p className="text-xs text-gray-500 mt-1">
-          {product?.category}
+          {product?.category || "General"}
         </p>
       </div>
     </Link>
